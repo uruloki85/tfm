@@ -1,4 +1,8 @@
 *.R
+TFM with R/.RData
+TFM with R/.Rhistory
+TFM with R/TFM with R.Rproj
+
 *.csv
 
 .idea/ 
