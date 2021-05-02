@@ -562,23 +562,3 @@ if (do_volcano_plots) {
 # Save as CSV
 # write_csv(harmonized_exp_data,file=paste(seriesName,"exp_data_harmonized.csv", sep="_")) 
 # read.table("test.txt",header=TRUE,row.names=1) # says first column are rownames
-
-###############################################################################
-##                           Ranked list                                     ##
-###############################################################################
-
-# series_treatment_vs_outcome <- "GSE45757", "GSE112282", "GSE14426", 
-# discarded: GSE37645
-# series_gene_exp_vs_outcome <- c("GSE28735", "GSE62452", "GSE21501", 
-# "GSE62165", "GSE57495")
-
-# Treatment vs outcome
-series1 = readLines("GSE45757_common_genes.csv")
-series2 = readLines("GSE112282_common_genes.csv")
-series3 = readLines("GSE14426_common_genes.csv")
-
-# Gene expression vs outcome
-
-series4 = readLines("GSE28735_common_genes.csv")
-series5 = readLines("GSE62452_common_genes.csv")
-series6 = readLines("GSE21501_common_genes.csv")
