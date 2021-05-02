@@ -2,10 +2,10 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 BiocManager::install(version = "3.12")
 
-# if (!requireNamespace("BiocManager", quietly = TRUE))
-#   install.packages("BiocManager")
-# 
-# BiocManager::install("biomaRt")
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+
+BiocManager::install("biomaRt")
 
 # locate package installation paths
 .libPaths()
@@ -31,3 +31,11 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 
 BiocManager::install("org.Hs.eg.db")
+
+
+BiocManager::install("cBioPortalData")
+BiocManager::install("AnVIL")
+
+# install in local folder, not system's
+install.packages(c("lattice","survival"))
+# Then, manually remove them from the system folder
