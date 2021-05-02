@@ -522,10 +522,11 @@ mapped_to_hgnc <- getBM(attributes=c('hgnc_symbol'),
 length(unique(mapped_to_hgnc$hgnc_symbol))
 #mapped_to_hgnc
 
-write.table(mapped_to_hgnc, 
+write.table(unique(mapped_to_hgnc), 
             file=paste(seriesName,"common_genes.csv", sep="_"), 
             col.names = "HGNC", 
-            row.names = FALSE) 
+            row.names = FALSE,
+            quote = FALSE) 
 
 ###############################################################################
 ##                              Volcano plot                                  #
