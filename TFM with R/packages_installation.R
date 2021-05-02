@@ -25,3 +25,9 @@ install.packages("ggrepel")
 
 
 install.packages("stringr")   
+# install.packages("splitstackshape")
+
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+
+BiocManager::install("org.Hs.eg.db")
