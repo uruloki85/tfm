@@ -224,7 +224,6 @@ if (seriesName == "GSE28735" || seriesName == "GSE62452"
 ############################################
 ## Define the design for the DEG analysis ##
 ############################################
-
 if(seriesName == "GSE112282") {
   design_colnames <- c("BET","BETMEK","MEK","VEHICLE","COLO201",
                        "HPAFII","NCIH510","RKO","Replicate2")
@@ -583,7 +582,3 @@ series3 = readLines("GSE14426_common_genes.csv")
 series4 = readLines("GSE28735_common_genes.csv")
 series5 = readLines("GSE62452_common_genes.csv")
 series6 = readLines("GSE21501_common_genes.csv")
-
-
-
-
