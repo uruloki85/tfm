@@ -30,7 +30,7 @@ library(ggplot2)
 ##                              Get the data                                 ##
 ###############################################################################
 
-seriesName <- "GSE16515"
+seriesName <- "GSE62165"
 do_volcano_plots <- TRUE
 
 gse <- getGEO(seriesName, GSEMatrix=TRUE, getGPL=TRUE)
@@ -206,12 +206,12 @@ if (seriesName == "GSE62165") {
   sampleInfo <- na.omit(sampleInfo, "stage")
   
   # Convert to 4 groups: Early (1,2) & Advanced (3,4) stages
-  # sampleInfo$stage[sampleInfo$stage == "1a"] <- "Early"
-  # sampleInfo$stage[sampleInfo$stage == "1b"] <- "Early"
-  # sampleInfo$stage[sampleInfo$stage == "2a"] <- "Early"
-  # sampleInfo$stage[sampleInfo$stage == "2b"] <- "Early"
-  # sampleInfo$stage[sampleInfo$stage == "3"] <- "Advanced"
-  # sampleInfo$stage[sampleInfo$stage == "4"] <- "Advanced"
+  sampleInfo$stage[sampleInfo$stage == "1a"] <- "Early"
+  sampleInfo$stage[sampleInfo$stage == "1b"] <- "Early"
+  sampleInfo$stage[sampleInfo$stage == "2a"] <- "Early"
+  sampleInfo$stage[sampleInfo$stage == "2b"] <- "Early"
+  sampleInfo$stage[sampleInfo$stage == "3"] <- "Advanced"
+  sampleInfo$stage[sampleInfo$stage == "4"] <- "Advanced"
   
   # sampleInfo$stage[sampleInfo$stage == "1a"] <- "1"
   # sampleInfo$stage[sampleInfo$stage == "1b"] <- "1"
@@ -220,12 +220,12 @@ if (seriesName == "GSE62165") {
   # sampleInfo$stage[sampleInfo$stage == "3"] <- "3"
   # sampleInfo$stage[sampleInfo$stage == "4"] <- "4"
   
-  sampleInfo$stage[sampleInfo$stage == "1a"] <- "1"
-  sampleInfo$stage[sampleInfo$stage == "1b"] <- "1"
-  sampleInfo$stage[sampleInfo$stage == "2a"] <- "2"
-  sampleInfo$stage[sampleInfo$stage == "2b"] <- "2"
-  sampleInfo$stage[sampleInfo$stage == "3"] <- "3"
-  sampleInfo$stage[sampleInfo$stage == "4"] <- "3"
+  # sampleInfo$stage[sampleInfo$stage == "1a"] <- "1"
+  # sampleInfo$stage[sampleInfo$stage == "1b"] <- "1"
+  # sampleInfo$stage[sampleInfo$stage == "2a"] <- "2"
+  # sampleInfo$stage[sampleInfo$stage == "2b"] <- "2"
+  # sampleInfo$stage[sampleInfo$stage == "3"] <- "3"
+  # sampleInfo$stage[sampleInfo$stage == "4"] <- "3"
   
   samples_to_keep <- row.names(sampleInfo)
   # samples_to_keep
@@ -385,16 +385,16 @@ if (seriesName == "GSE62165") {
   #                            LNM - Advanced,
   #                            LNM - Early,
   #                            levels=design)
-  # design_colnames <- c("Advanced","Early")
-  # colnames(design) <- design_colnames
-  # contrasts <- makeContrasts(Early - Advanced,
-  #                            levels=design)
-  design_colnames <- c("g1","g2","g3")
+  design_colnames <- c("Advanced","Early")
   colnames(design) <- design_colnames
-  contrasts <- makeContrasts("g2 - g1",
-                             "g3 - g1",
-                             "g3 - g2",
+  contrasts <- makeContrasts(Early - Advanced,
                              levels=design)
+  # design_colnames <- c("g1","g2","g3")
+  # colnames(design) <- design_colnames
+  # contrasts <- makeContrasts("g2 - g1",
+  #                            "g3 - g1",
+  #                            "g3 - g2",
+  #                            levels=design)
 }
 if (seriesName == "GSE15471") {
   design <- model.matrix(~0+sampleInfo$tissue)
@@ -637,7 +637,8 @@ if (seriesName == "GSE112282" || seriesName == "GSE71729") {
 if (seriesName == "GSE45757" || seriesName == "GSE28735"
     || seriesName == "GSE62452"|| seriesName == "GSE21501"
     || seriesName == "GSE15471" || seriesName == "GSE55643"
-    || seriesName == "GSE11838" || seriesName == "GSE16515") {
+    || seriesName == "GSE11838" || seriesName == "GSE16515"
+    || seriesName == "GSE62165") {
   iv <- results[,1] != 0
 }
 # if (seriesName == "GSE71729") {
@@ -703,6 +704,9 @@ if (do_volcano_plots) {
   
   ## change according to your needs
   p_cutoff <- 0.05
+  if (seriesName == "GSE62165") {
+    p_cutoff <- 0.3
+  }
   fc_cutoff <- 1
   
   full_results %>% 

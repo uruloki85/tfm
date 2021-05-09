@@ -12,7 +12,6 @@ library(data.table)
 # Treatment vs outcome #
 ########################
 
-# series1 = readLines("GSE45757_common_genes.csv")
 series1 = read.csv(file = "GSE45757_common_genes.csv", header = TRUE)
 series2 = read.csv(file = "GSE112282_common_genes.csv", header = TRUE)
 # series3 = read.csv(file = "GSE14426_common_genes.csv", header = TRUE)
@@ -40,8 +39,9 @@ series20 = read.csv(file = "GSE28735_common_genes.csv", header = TRUE)
 series21 = read.csv(file = "GSE62452_common_genes.csv", header = TRUE)
 series22 = read.csv(file = "GSE21501_common_genes.csv", header = TRUE)
 series23 = read.csv(file = "GSE15471_common_genes.csv", header = TRUE)
+series24 = read.csv(file = "GSE62165_common_genes.csv", header = TRUE)
 
-common_g_expr_vs_outcome <- rbindlist(mget(paste0("series", 20:23)))[, .N, HGNC]
+common_g_expr_vs_outcome <- rbindlist(mget(paste0("series", 20:24)))[, .N, HGNC]
 common_g_expr_vs_outcome[order(-N,HGNC)]
 colnames(common_g_expr_vs_outcome)[2] <- "count"
 # Save as CSV
