@@ -70,22 +70,47 @@ metadata(study)
 # study_wide <- wideFormat(maemerge, colDataCols=c("OS_STATUS","PFS_STATUS"))
 
 subacc <- study[, , "RNA_Seq_v2_mRNA_median_all_sample_Zscores"]
+nrow(assay(subacc)) # 20531
+ncol(assay(subacc)) # 177
 # subacc <- intersectColumns(subacc)
 # subacc <- intersectRows(subacc)
 
-subacc_wide <- wideFormat(subacc, colDataCols=c("OS_MONTHS","PFS_MONTHS"))
+subacc_wide <- wideFormat(subacc, colDataCols=c("OS_MONTHS","PFS_MONTHS"), )
+#subacc_wide_orig <- wideFormat(subacc, colDataCols=c("OS_MONTHS","PFS_MONTHS"), )
+
 nrow(subacc_wide) # 177
 ncol(subacc_wide) # 20534
+
 # rownames(subacc_wide)
-# colnames(subacc_wide)
-# 
+col_names <- colnames(subacc_wide)
+#length((col_names))
+
+# Remove the prefix with the experiment name in all the columns
+new_col_names <- sub("RNA_Seq_v2_mRNA_median_all_sample_Zscores_", "", col_names)
+#length((new_col_names))
+
+# Set the new column names
+colnames(subacc_wide) <- new_col_names
+
 # subacc_wide[0:3,0:5]
+# subacc_wide[0:3,20531:20534]
+# subacc_wide_orig[0:3,20531:20534]
 # subacc_wide[0:3,-1]
 
+gene_signature_df <- read.csv(file = "signature_final.csv", header = TRUE)
+gene_signature <- gene_signature_df[['x']]
+
+cols_subset <- c(gene_signature, c("OS_MONTHS","PFS_MONTHS"))
+cols_subset
+
 # [,-1] to remove the first column which contains the sample name
-mycors <- cor(as.matrix(subacc_wide[,-1]))
+# mycors <- cor(as.matrix(subacc_wide[,-1]))
+
+# subacc_wide[,cols_subset]
+mycors <- cor(as.matrix(subacc_wide[,cols_subset]))
+
 mycors <- abs(mycors)
-# diag(mycors) <- NA
+diag(mycors) <- NA
 
 has.high.cor <- apply(mycors, 2, max, na.rm=TRUE) > 0.5
 mycors <- mycors[has.high.cor, has.high.cor]
