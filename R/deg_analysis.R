@@ -30,8 +30,8 @@ library(ggplot2)
 ##                              Get the data                                 ##
 ###############################################################################
 
-seriesName <- "GSE62165"
-do_volcano_plots <- TRUE
+seriesName <- "GSE71729"
+do_volcano_plots <- FALSE
 
 gse <- getGEO(seriesName, GSEMatrix=TRUE, getGPL=TRUE)
 gse <- gse[[1]]
@@ -114,36 +114,57 @@ if (seriesName == "GSE14426") {
   samples_to_keep <- row.names(sampleInfo)
 }
 if (seriesName == "GSE71729") {
+  # sampleInfo <- dplyr::select(sampleInfo, 
+  #                             "tissue type:ch2")
+  # sampleInfo <- rename(sampleInfo,
+  #                      tissue="tissue type:ch2")
+  # sampleInfo <- na.omit(sampleInfo, "tissue")
+  
   sampleInfo <- dplyr::select(sampleInfo, 
-                              "tissue type:ch2")
-  sampleInfo <- rename(sampleInfo,
-                       tissue="tissue type:ch2")
-  sampleInfo <- na.omit(sampleInfo, "tissue")
+                              "survival_months:ch2")
+  sampleInfo <- dplyr::rename(sampleInfo,
+                       OS="survival_months:ch2")
+  sampleInfo <- na.omit(sampleInfo, "OS")
+  sampleInfo$OS <- as.numeric(sampleInfo$OS)
   
   samples_to_keep <- row.names(sampleInfo)
+  
+  # 3 -> 822/30= 27.4
+  # 2 -> 599/30= 19.9
+  # 1 -> 474÷30= 15.8
+  # 4a -> 324/30= 10.8
+  # 4b -> 162/30= 5.4
+
+  # Classify into a few groups
+  
+  sampleInfo$stage[sampleInfo$OS <= 10.8] <- 'Advanced'
+  sampleInfo$stage[sampleInfo$OS > 10.8] <- 'Early'
+  
+  # sampleInfo$stageAdv[sampleInfo$OS <= 10.8] <- 'Advanced'
+  # sampleInfo$stageEar[sampleInfo$OS > 10.8] <- 'Early'
 }
 if (seriesName == "GSE60980") {
   sampleInfo <- dplyr::select(sampleInfo, 
                               "tissue:ch1")
-  sampleInfo <- rename(sampleInfo,
+  sampleInfo <- dplyr::rename(sampleInfo,
                        tissue="tissue:ch1")
 }
 if (seriesName == "GSE56560") {
   sampleInfo <- dplyr::select(sampleInfo,
                               "tissue:ch1")
-  sampleInfo <- rename(sampleInfo,
+  sampleInfo <- dplyr::rename(sampleInfo,
                        tissue="tissue:ch1")
 }
 if (seriesName == "GSE55643") {
   sampleInfo <- dplyr::select(sampleInfo,
                               "tissue:ch1")
-  sampleInfo <- rename(sampleInfo,
+  sampleInfo <- dplyr::rename(sampleInfo,
                        tissue="tissue:ch1")
 }
 if (seriesName == "GSE77858") {
   sampleInfo <- dplyr::select(sampleInfo,
                               "morphology:ch2")
-  sampleInfo <- rename(sampleInfo,
+  sampleInfo <- dplyr::rename(sampleInfo,
                        tissue="morphology:ch2")
   # Fix typo
   sampleInfo[sampleInfo == "Panreatitis"] <- "Pancreatitis"
@@ -152,14 +173,14 @@ if (seriesName == "GSE77858") {
 if (seriesName == "GSE11838") {
   sampleInfo <- dplyr::select(sampleInfo,
                               "source_name_ch1")
-  sampleInfo <- rename(sampleInfo,
+  sampleInfo <- dplyr::rename(sampleInfo,
                        tissue="source_name_ch1")
   # unique(sampleInfo$tissue)
 }
 if (seriesName == "GSE16515") {
   sampleInfo <- dplyr::select(sampleInfo,
                               "tissue:ch1")
-  sampleInfo <- rename(sampleInfo,
+  sampleInfo <- dplyr::rename(sampleInfo,
                        tissue="tissue:ch1")
   # unique(sampleInfo$tissue)
 }
@@ -197,9 +218,9 @@ if (seriesName == "GSE62165") {
   #                      "grouped stage:ch1")
   # sampleInfo <- rename(sampleInfo,
   #                      stage="grouped stage:ch1")
-  sampleInfo <- select(sampleInfo,
+  sampleInfo <- dplyr::select(sampleInfo,
                        "Stage:ch1")
-  sampleInfo <- rename(sampleInfo,
+  sampleInfo <- dplyr::rename(sampleInfo,
                        stage="Stage:ch1")
   # Remove samples with NA value
   sampleInfo[sampleInfo == "NA"] <- NA
@@ -404,12 +425,17 @@ if (seriesName == "GSE15471") {
                              levels=design)
 }
 if (seriesName == "GSE71729") {
-  design <- model.matrix(~0+sampleInfo$tissue)
-  design_colnames <- c("Metastasis", "Normal", "Primary")
+  # design <- model.matrix(~0+sampleInfo$tissue)
+  # design_colnames <- c("Metastasis", "Normal", "Primary")
+  # colnames(design) <- design_colnames
+  # contrasts <- makeContrasts(Normal - Metastasis,
+  #                            Primary - Metastasis,
+  #                            Primary - Normal,
+  #                            levels=design)
+  design <- model.matrix(~0+sampleInfo$stage)
+  design_colnames <- c("Advanced", "Early")
   colnames(design) <- design_colnames
-  contrasts <- makeContrasts(Normal - Metastasis,
-                             Primary - Metastasis,
-                             Primary - Normal,
+  contrasts <- makeContrasts(Early - Advanced,
                              levels=design)
 }
 if (seriesName == "GSE56560") {
@@ -587,7 +613,8 @@ table(results)
 if (seriesName != "GSE28735" 
     && seriesName != "GSE62452"
     && seriesName != "GSE62165"
-    && seriesName != "GSE56560") {
+    && seriesName != "GSE56560"
+    && seriesName != "GSE71729") {
   
   gene_accession <- "GB_ACC"
   if (seriesName == "GSE14426") {
