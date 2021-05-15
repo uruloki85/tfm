@@ -7,30 +7,18 @@ library(ggplot2)
 ########################
 # Treatment vs Outcome #
 ########################
-# Done: GSE112282, GSE45757
-# New: GSE71729, GSE56560, GSE55643, GSE77858, GSE11838, GSE16515
-
-# Weird result: GSE60980
-
-# Too few DEG: GSE14426
-
-# Weird boxplot: GSE17891
-# Discarded: GSE37645
+# GSE112282, GSE45757, GSE14426, GSE55643, GSE77858, GSE11838
 
 ##############################
 # Gene expression vs Outcome #
 ##############################
-# Done: GSE28735, GSE62452, GSE21501, GSE15471
-
-# Weird result: GSE62165
-# Discarded: GSE57495
-
+# GSE21501, GSE28735, GSE62165, GSE71729, GSE56560
 
 ###############################################################################
 ##                              Get the data                                 ##
 ###############################################################################
 
-seriesName <- "GSE21501"
+seriesName <- "GSE56560"
 do_volcano_plots <- FALSE
 
 gse <- getGEO(seriesName, GSEMatrix=TRUE, getGPL=TRUE)
@@ -620,7 +608,7 @@ ncol(eset)
 nrow(design)
 
 fit <- lmFit(eset, design)
-head(fit$coefficients)
+# head(fit$coefficients)
 
 contrasts
 
@@ -639,13 +627,16 @@ topTable(fit2)
 # Find differentially-expressed genes
 
 if (seriesName == "GSE62165") {
-  results <- decideTests(fit2, p.value = 0.3)  
+  results <- decideTests(fit2, p.value = 0.6)  
 } else if (seriesName == "GSE28735") {
-  results <- decideTests(fit2, p.value = 0.8)
+  # tried: 0.8 (177 DEG), 0.85 (219), 0.9 (2560), 1.0 (all are detected as DEG)
+  results <- decideTests(fit2, p.value = 0.85)
 } else if (seriesName == "GSE71729") {
-  results <- decideTests(fit2, p.value = 0.5)
+  # tried: 0.5 (26), 0.65 (235)
+  results <- decideTests(fit2, p.value = 0.65)
 } else if (seriesName == "GSE56560") {
-  results <- decideTests(fit2, p.value = 0.5)
+  # tried: 0.5 (40), 0.6 (43), 0.65 (151), 0.7 (242)
+  results <- decideTests(fit2, p.value = 0.65)
 } else if (seriesName == "GSE14426") {
   results <- decideTests(fit2, p.value = 0.3)
 } else {
@@ -655,6 +646,12 @@ if (seriesName == "GSE62165") {
 
 # How many genes are differentially-expressed
 table(results)
+
+##################
+## Venn Diagram ##
+##################
+
+vennDiagram(results) 
 
 ####################
 ## Add gene names ##
@@ -689,12 +686,6 @@ if (seriesName != "GSE28735"
 
 topTable(fit2)
 
-###############################################################################
-##                              Venn Diagram                                 ##
-###############################################################################
-
-vennDiagram(results) 
-
 ######################
 ## Get common genes ##
 ######################
@@ -722,6 +713,28 @@ if (seriesName == "GSE14426"
 # use it to extract gene names
 deg <- fit2$genes[iv]
 length(deg)
+# deg
+
+###############
+# Get top DEG #
+###############
+do_top_x = FALSE
+if (seriesName == "") {
+  do_top_x = TRUE
+  topValue <- 800
+}
+
+if (do_top_x) {
+  # Get genes and p.values
+  res_df <- data.frame(fit2$genes[iv], fit2$F.p.value[iv])
+  colnames(res_df) <- c("Gene","F.p.value")
+  res_df$Gene[res_df$Gene == ""] <- NA
+  res_df <- na.omit(res_df, "Gene")
+  # Order by p.value and get top 100
+  top_x <- res_df[order(res_df$F.p.value),][0:topValue,]
+  deg <- top_x$Gene
+  # topTable(fit2, number=30)
+}
 
 #######################
 # Convert GenBank IDs #

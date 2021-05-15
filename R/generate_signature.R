@@ -61,7 +61,7 @@ table(common_g_expr_vs_outcome$count)
 # Common to both #
 ##################
 subset1 <- as.data.frame(common_treatment_vs_outcome[common_treatment_vs_outcome$count >= 2]$HGNC)
-subset2 <- as.data.frame(common_g_expr_vs_outcome[common_g_expr_vs_outcome$count==2]$HGNC)
+subset2 <- as.data.frame(common_g_expr_vs_outcome[common_g_expr_vs_outcome$count >= 2]$HGNC)
 colnames(subset1)[1] <- "HGNC"
 colnames(subset2)[1] <- "HGNC"
 
