@@ -30,7 +30,7 @@ library(ggplot2)
 ##                              Get the data                                 ##
 ###############################################################################
 
-seriesName <- "GSE14426"
+seriesName <- "GSE21501"
 do_volcano_plots <- FALSE
 
 gse <- getGEO(seriesName, GSEMatrix=TRUE, getGPL=TRUE)
@@ -50,7 +50,8 @@ if (seriesName == "GSE37645" || seriesName == "GSE45757"
     || seriesName == "GSE112282" || seriesName ==  "GSE14426"
     || seriesName == "GSE89396" #|| seriesName == "GSE60980"
     || seriesName == "GSE56560" || seriesName == "GSE55643"
-    || seriesName == "GSE11838" || seriesName == "GSE16515") {
+    || seriesName == "GSE11838" || seriesName == "GSE16515"
+    || seriesName == "GSE38781") {
   exprs(gse) <- log2(exprs(gse))
 }
 
@@ -186,9 +187,10 @@ if(seriesName == "GSE112282") {
   sampleInfo$stage[sampleInfo$age > 10.8] <- 'Low'
   
 } else if (seriesName == "GSE62452") {
-  sampleInfo <- dplyr::select(sampleInfo, "tissue:ch1")
+  sampleInfo <- dplyr::select(sampleInfo, 
+                              "tissue:ch1")
   sampleInfo <- dplyr::rename(sampleInfo, 
-                       tissue="tissue:ch1")
+                              tissue="tissue:ch1")
 } else if (seriesName == "GSE28735") {
   sampleInfo <- dplyr::select(sampleInfo, 
                               "survival_month:ch1", 
@@ -211,11 +213,11 @@ if(seriesName == "GSE112282") {
   sampleInfo$stage[sampleInfo$OS > 10.8] <- 'Early'
 } else if (seriesName == "GSE21501") {
   sampleInfo <- dplyr::select(sampleInfo, 
-                       "characteristics_ch2.5", 
-                       "characteristics_ch2.6")
+                              "characteristics_ch2.5", 
+                              "characteristics_ch2.6")
   sampleInfo <- dplyr::rename(sampleInfo, 
-                       risk="characteristics_ch2.5", 
-                       risk2="characteristics_ch2.6")
+                              risk="characteristics_ch2.5", 
+                              risk2="characteristics_ch2.6")
   
   # Information is misplaced in these samples
   sampleInfo["GSM536946","risk"] <- sampleInfo["GSM536946","risk2"]
@@ -236,9 +238,9 @@ if(seriesName == "GSE112282") {
   # sampleInfo <- rename(sampleInfo,
   #                      stage="grouped stage:ch1")
   sampleInfo <- dplyr::select(sampleInfo,
-                       "Stage:ch1")
+                              "Stage:ch1")
   sampleInfo <- dplyr::rename(sampleInfo,
-                       stage="Stage:ch1")
+                              stage="Stage:ch1")
   # Remove samples with NA value
   sampleInfo[sampleInfo == "NA"] <- NA
   sampleInfo <- na.omit(sampleInfo, "stage")
@@ -270,9 +272,15 @@ if(seriesName == "GSE112282") {
   
   length(unique(sampleInfo$stage)) # 2 unique values
 } else if (seriesName == "GSE15471") {
-  sampleInfo <- dplyr::select(sampleInfo, "sample:ch1")
-  sampleInfo <- rename(sampleInfo, 
-                       tissue="sample:ch1")
+  sampleInfo <- dplyr::select(sampleInfo, 
+                              "sample:ch1")
+  sampleInfo <- dplyr::rename(sampleInfo, 
+                              tissue="sample:ch1")
+} else if(seriesName == "GSE38781") {
+  sampleInfo <- dplyr::select(sampleInfo, 
+                              "overall survival (os):ch1")
+  sampleInfo <- dplyr::rename(sampleInfo, 
+                              OS="overall survival (os):ch1")
 }
 # if (seriesName == "GSE57495") {
 #   # sampleInfo <- select(sampleInfo, "overall survival (month):ch1")

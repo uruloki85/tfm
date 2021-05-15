@@ -50,11 +50,18 @@ write.csv(common_g_expr_vs_outcome[order(-count,HGNC)],
           quote = FALSE,
           row.names = FALSE)
 
+################################################
+# Number of genes grouping by number of series #
+################################################
+
+table(common_treatment_vs_outcome$count)
+table(common_g_expr_vs_outcome$count)
+
 ##################
 # Common to both #
 ##################
-subset1 <- as.data.frame(common_treatment_vs_outcome[common_treatment_vs_outcome$count==6]$HGNC)
-subset2 <- as.data.frame(common_g_expr_vs_outcome[common_g_expr_vs_outcome$count==5]$HGNC)
+subset1 <- as.data.frame(common_treatment_vs_outcome[common_treatment_vs_outcome$count >= 2]$HGNC)
+subset2 <- as.data.frame(common_g_expr_vs_outcome[common_g_expr_vs_outcome$count==2]$HGNC)
 colnames(subset1)[1] <- "HGNC"
 colnames(subset2)[1] <- "HGNC"
 
