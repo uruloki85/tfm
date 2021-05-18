@@ -18,7 +18,7 @@ library(ggplot2)
 ##                              Get the data                                 ##
 ###############################################################################
 
-seriesName <- "GSE56560"
+seriesName <- "GSE28735"
 do_volcano_plots <- FALSE
 
 gse <- getGEO(seriesName, GSEMatrix=TRUE, getGPL=TRUE)
@@ -144,16 +144,32 @@ if(seriesName == "GSE112282") { #x
   sampleInfo$OS <- as.numeric(sampleInfo$OS)
   sampleInfo <- na.omit(sampleInfo, "OS")
   # Select only Tumor samples
-  # sampleInfo <- sampleInfo[sampleInfo$tissue == "T", ]
+  sampleInfo <- sampleInfo[sampleInfo$tissue == "T", ]
   
   samples_to_keep <- row.names(sampleInfo)
   
-  # sampleInfo$stage[sampleInfo$OS <= 5.4] <- 'High'
-  # sampleInfo$stage[sampleInfo$OS <= 10.8 & sampleInfo$OS > 5.4] <- 'Medium'
-  # sampleInfo$stage[sampleInfo$OS > 10.8] <- 'Low'
+  
+  stages_mst <- data.frame(c(21.44,11.84,8,3), 
+                           c(0, 11.84+11.84*.4, 8+8*.4, 3+3*.4))
+  rownames(stages_mst) <- c('I','II','III','IV')
+  colnames(stages_mst) <- c('MST','MST+40%')
+  
+  sampleInfo$stage[sampleInfo$OS <= stages_mst["IV","MST+40%"]] <- 'IV'
+  # sampleInfo$stageV[sampleInfo$OS <= stages_mst["IV","MST+40%"]] <- stages_mst["IV","MST+40%"]
+  sampleInfo$stage[sampleInfo$OS <= stages_mst["III","MST+40%"] 
+                   & sampleInfo$OS > stages_mst["IV","MST+40%"]] <- 'III'
+  # sampleInfo$stageV[sampleInfo$OS <= stages_mst["III","MST+40%"] 
+  #                   & sampleInfo$OS > stages_mst["IV","MST+40%"]] <- stages_mst["III","MST+40%"]
+  # sampleInfo$stage[sampleInfo$OS <= stages_mst["II","MST+40%"] 
+  #                  & sampleInfo$OS > stages_mst["III","MST+40%"]] <- 'II'
+  # sampleInfo$stageV[sampleInfo$OS <= stages_mst["II","MST+40%"] &
+  #                     sampleInfo$OS > stages_mst["III","MST+40%"]] <- stages_mst["II","MST+40%"]
+  # sampleInfo$stage[sampleInfo$OS > stages_mst["II","MST+40%"]] <- 'I'
+  # sampleInfo$stageV[sampleInfo$OS > stages_mst["II","MST+40%"]] <- stages_mst["II","MST+40%"]
+  sampleInfo$stage[sampleInfo$OS > stages_mst["III","MST+40%"]] <- 'I-II'
 
-  sampleInfo$stage[sampleInfo$OS <= 10.8] <- 'Advanced'
-  sampleInfo$stage[sampleInfo$OS > 10.8] <- 'Early'
+  # sampleInfo$stage[sampleInfo$OS <= 10.8] <- 'Advanced'
+  # sampleInfo$stage[sampleInfo$OS > 10.8] <- 'Early'
   
 } else if (seriesName == "GSE21501") { # x
   sampleInfo <- dplyr::select(sampleInfo, 
@@ -358,17 +374,23 @@ if(seriesName == "GSE112282") { #x
   #                            Primary - Metastasis,
   #                            Primary - Normal,
   #                            levels=design)
-  design <- model.matrix(~0+sampleInfo$stage
-                         +sampleInfo$tissue)
-  design_colnames <- c("Advanced", "Early", "Tumor")
+  # design <- model.matrix(~0+sampleInfo$stage
+  #                        +sampleInfo$tissue)
+  # design_colnames <- c("Advanced", "Early", "Tumor")
   # design_colnames <- c("High", "Low","Medium","Tumor")
+  design <- model.matrix(~0+sampleInfo$stage)
+  design_colnames <- c("I","III","IV")
   colnames(design) <- design_colnames
+  contrasts <- makeContrasts(IV - III,
+                             IV - I,
+                             III - I,
+                             levels=design)
   # contrasts <- makeContrasts(Low - High,
   #                            Medium - Low,
   #                            Medium - High,
   #                            levels=design)
-  contrasts <- makeContrasts(Early - Advanced,
-                             levels=design)
+  # contrasts <- makeContrasts(Early - Advanced,
+  #                            levels=design)
   
 } else if (seriesName == "GSE56560") { # x
   # design <- model.matrix(~0+sampleInfo$tissue)
@@ -482,7 +504,8 @@ if (seriesName == "GSE62165") { # x
   results <- decideTests(fit2, p.value = 0.6)  
 } else if (seriesName == "GSE28735") { # x
   # tried: 0.8 (177 DEG), 0.85 (219), 0.9 (2560), 1.0 (all are detected as DEG)
-  results <- decideTests(fit2, p.value = 0.85)
+  results <- decideTests(fit2, p.value = 0.8)
+  # results <- decideTests(fit2)
 } else if (seriesName == "GSE71729") { # x
   # tried: 0.5 (26), 0.65 (235)
   results <- decideTests(fit2, p.value = 0.65)
