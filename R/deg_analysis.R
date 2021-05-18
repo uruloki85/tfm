@@ -34,16 +34,10 @@ summary(exprs(gse))
 # exprs(gse)
 
 # if data is log2, will be between 0 and 16
-if (seriesName == "GSE37645" 
-    || seriesName == "GSE45757"  # x
-    || seriesName == "GSE112282" # x
-    || seriesName ==  "GSE14426" # x
-    || seriesName == "GSE89396" #|| seriesName == "GSE60980"
-    || seriesName == "GSE56560"  # x
-    || seriesName == "GSE55643"
-    || seriesName == "GSE11838" 
-    || seriesName == "GSE16515"
-    || seriesName == "GSE38781") {
+if (seriesName == "GSE45757"
+    || seriesName == "GSE112282"
+    || seriesName ==  "GSE14426"
+    || seriesName == "GSE56560") {
   exprs(gse) <- log2(exprs(gse))
 }
 
@@ -78,13 +72,7 @@ if(seriesName == "GSE112282") { #x
                        replicate="replicate info:ch1", 
                        treatment="treatment:ch1")
 
-# else if (seriesName == "GSE37645") {
-#   sampleInfo <- dplyr::select(sampleInfo, 
-#                        "characteristics_ch1.3")
-#   sampleInfo <- dplyr::rename(sampleInfo, 
-#                        sensitive="characteristics_ch1.3")
-# }
-} else if (seriesName == "GSE45757") { # x
+  } else if (seriesName == "GSE45757") { # x
   sampleInfo <- dplyr::select(sampleInfo, 
                        "treated with:ch1", 
                        "cell line:ch1")
@@ -93,6 +81,7 @@ if(seriesName == "GSE112282") { #x
                        line="cell line:ch1")
   # Fix typo: replace Mpanc96 with MPanc96
   sampleInfo$line[sampleInfo$line == "Mpanc-96"] <- "MPanc-96"
+  
 } else if (seriesName == "GSE14426") { # x
   # Select only samples for 24h and 168h
   library("stringr")  
@@ -135,11 +124,6 @@ if(seriesName == "GSE112282") { #x
   sampleInfo$stage[sampleInfo$OS <= 10.8] <- 'Advanced'
   sampleInfo$stage[sampleInfo$OS > 10.8] <- 'Early'
   
-} else if (seriesName == "GSE60980") {
-  sampleInfo <- dplyr::select(sampleInfo, 
-                              "tissue:ch1")
-  sampleInfo <- dplyr::rename(sampleInfo,
-                       tissue="tissue:ch1")
 } else if (seriesName == "GSE56560") { # x
   sampleInfo <- dplyr::select(sampleInfo,
                               "grading:ch1")
@@ -149,40 +133,7 @@ if(seriesName == "GSE112282") { #x
   sampleInfo <- na.omit(sampleInfo, "grading")
   
   samples_to_keep <- row.names(sampleInfo)
-} else if (seriesName == "GSE55643") {
-  sampleInfo <- dplyr::select(sampleInfo,
-                              "tissue:ch1")
-  sampleInfo <- dplyr::rename(sampleInfo,
-                       tissue="tissue:ch1")
-} else if (seriesName == "GSE77858") {
-  sampleInfo <- dplyr::select(sampleInfo,
-                              "morphology:ch2")
-  sampleInfo <- dplyr::rename(sampleInfo,
-                       tissue="morphology:ch2")
-  # Fix typo
-  sampleInfo[sampleInfo == "Panreatitis"] <- "Pancreatitis"
-  # unique(sampleInfo$tissue)
-} else if (seriesName == "GSE11838") {
-  sampleInfo <- dplyr::select(sampleInfo,
-                              "source_name_ch1")
-  sampleInfo <- dplyr::rename(sampleInfo,
-                       tissue="source_name_ch1")
-  # unique(sampleInfo$tissue)
-} else if (seriesName == "GSE16515") {
-  sampleInfo <- dplyr::select(sampleInfo,
-                              "age:ch1")
-  sampleInfo <- dplyr::rename(sampleInfo,
-                       age="age:ch1")
-  sampleInfo$age <- as.numeric(sampleInfo$age)
-  sampleInfo$stage[sampleInfo$age * 12 <= 5.4] <- 'High'
-  sampleInfo$stage[sampleInfo$age <= 10.8 & sampleInfo$age > 5.4] <- 'Medium'
-  sampleInfo$stage[sampleInfo$age > 10.8] <- 'Low'
-  
-} else if (seriesName == "GSE62452") {
-  sampleInfo <- dplyr::select(sampleInfo, 
-                              "tissue:ch1")
-  sampleInfo <- dplyr::rename(sampleInfo, 
-                              tissue="tissue:ch1")
+
 } else if (seriesName == "GSE28735") { # x
   sampleInfo <- dplyr::select(sampleInfo, 
                               "survival_month:ch1", 
@@ -203,6 +154,7 @@ if(seriesName == "GSE112282") { #x
 
   sampleInfo$stage[sampleInfo$OS <= 10.8] <- 'Advanced'
   sampleInfo$stage[sampleInfo$OS > 10.8] <- 'Early'
+  
 } else if (seriesName == "GSE21501") { # x
   sampleInfo <- dplyr::select(sampleInfo, 
                               "characteristics_ch2.5", 
@@ -224,6 +176,7 @@ if(seriesName == "GSE112282") { #x
   # samples_to_keep
   
   length(unique(sampleInfo$risk)) # 2 unique values
+  
 } else if (seriesName == "GSE62165") { # x
   # sampleInfo <- select(sampleInfo,
   #                      "grouped stage:ch1")
@@ -263,35 +216,7 @@ if(seriesName == "GSE112282") { #x
   # samples_to_keep
   
   length(unique(sampleInfo$stage)) # 2 unique values
-} else if (seriesName == "GSE15471") {
-  sampleInfo <- dplyr::select(sampleInfo, 
-                              "sample:ch1")
-  sampleInfo <- dplyr::rename(sampleInfo, 
-                              tissue="sample:ch1")
-} else if(seriesName == "GSE38781") {
-  sampleInfo <- dplyr::select(sampleInfo, 
-                              "overall survival (os):ch1")
-  sampleInfo <- dplyr::rename(sampleInfo, 
-                              OS="overall survival (os):ch1")
 }
-# if (seriesName == "GSE57495") {
-#   # sampleInfo <- select(sampleInfo, "overall survival (month):ch1")
-#   # sampleInfo <- rename(sampleInfo, 
-#   #                      OS="overall survival (month):ch1")
-#   # sampleInfo$OS <- as.numeric(sampleInfo$OS)
-#   # # Low risk -> median of median survival of 35 months
-#   # # High risk -> median of median survival of 15 months
-#   # sampleInfo$risk[sampleInfo$OS <= 23] <- "High"
-#   # sampleInfo$risk[sampleInfo$OS > 23] <- "Low"
-#   # sampleInfo <- select(sampleInfo, risk)
-#   
-#   sampleInfo <- select(sampleInfo, "Stage:ch1")
-#   sampleInfo <- rename(sampleInfo, 
-#                        stage="Stage:ch1")
-#   sampleInfo$stage[sampleInfo$stage == "1B"] <- "1"
-#   sampleInfo$stage[sampleInfo$stage == "2A"] <- "2"
-#   sampleInfo$stage[sampleInfo$stage == "2B"] <- "2"
-# }
 
 #################################################
 ## Get the relevant metadata from the platform ##
@@ -302,31 +227,18 @@ features <- fData(gse)
 
 # We keep the probe ID and the gene accession
 if(seriesName == "GSE112282" #x
-   || seriesName == "GSE37645" 
    || seriesName == "GSE45757" # x
-   || seriesName == "GSE21501" # x
-   || seriesName == "GSE89396" 
-   || seriesName == "GSE15471"
-   || seriesName == "GSE60980" 
-   || seriesName == "GSE55643"
-   || seriesName == "GSE77858" 
-   || seriesName == "GSE11838"
-   || seriesName == "GSE16515") {
+   || seriesName == "GSE21501") {  # x
   features <- dplyr::select(features, ID, GB_ACC)
 } else if (seriesName == "GSE14426") { # x
   features <- dplyr::select(features, ID, Accession)
 } else if (seriesName == "GSE28735"  # x
-           || seriesName == "GSE62452"
     || seriesName == "GSE62165" # x
-    #|| seriesName == "GSE57495"
     || seriesName == "GSE56560") { # x
   features <- dplyr::select(features, ID, GB_LIST)
 } else if (seriesName == "GSE71729") { # x
   features <- dplyr::select(features, ID)
 }
-
-# full_output <- cbind(features,exprs(gse))
-# write_csv(full_output,file=paste(seriesName,"exp_data_harmonized.csv", sep="_")) 
 
 ###############################################################################
 ##                                Design                                     ##
@@ -347,11 +259,6 @@ if(seriesName == "GSE112282") { #x
                              MEK - VEHICLE, 
                              levels=design)
 
-# if (seriesName == "GSE37645") {
-#   design <- model.matrix(~0+sampleInfo$sensitive)
-#   colnames(design) <- c("NonSensitive","Sensitive")
-#   contrasts <- makeContrasts(Sensitive - NonSensitive, levels=design)
-# }
 } else if (seriesName == "GSE45757") { # x
   design_colnames <- c("Treated","Untreated","Capan2","CFPAC1","COLO357",
                        "HPAFII","Hs766T","L33","L36pl","L36sl","MIAPaCa2",
@@ -363,6 +270,7 @@ if(seriesName == "GSE112282") { #x
   colnames(design) <- design_colnames
   contrasts <- makeContrasts(Untreated - Treated, 
                              levels=design)
+  
 } else if (seriesName == "GSE14426") { # x
   design <- model.matrix(~0+sampleInfo$source)
   design_colnames <- c("ATRA168h","ATRA24h","Vehicle168h","Vehicle24h")
@@ -370,23 +278,14 @@ if(seriesName == "GSE112282") { #x
   contrasts <- makeContrasts(Vehicle168h - ATRA168h, 
                              Vehicle24h - ATRA24h,
                              levels=design)
-} else if (seriesName == "GSE89396") {
-  design <- model.matrix(~0+sampleInfo$treatment)
-  colnames(design) <- c("treated","untreated")
-  contrasts <- makeContrasts(untreated - treated,
-                             levels=design)
-} else if (seriesName == "GSE62452") {
-  design <- model.matrix(~0+sampleInfo$tissue)
-  design_colnames <- c("NonTumour","Tumour")
-  colnames(design) <- design_colnames
-  contrasts <- makeContrasts(Tumour - NonTumour, 
-                             levels=design)
+  
 } else if (seriesName == "GSE21501") { # x
   design <- model.matrix(~0+sampleInfo$risk)
   design_colnames <- c("HighRisk","LowRisk")
   colnames(design) <- design_colnames
   contrasts <- makeContrasts(LowRisk - HighRisk, 
                              levels=design)
+  
 } else if (seriesName == "GSE62165") { # x
   design <- model.matrix(~0+sampleInfo$stage)
   # design_colnames <- c("g1a","g1b","g2a","g2b","g3","g4")
@@ -430,12 +329,7 @@ if(seriesName == "GSE112282") { #x
   #                            "g3 - g1",
   #                            "g3 - g2",
   #                            levels=design)
-} else if (seriesName == "GSE15471") {
-  design <- model.matrix(~0+sampleInfo$tissue)
-  design_colnames <- c("Normal","Tumor")
-  colnames(design) <- design_colnames
-  contrasts <- makeContrasts(Tumor - Normal, 
-                             levels=design)
+
 } else if (seriesName == "GSE71729") { # x
   # design <- model.matrix(~0+sampleInfo$tissue)
   # design_colnames <- c("Metastasis", "Normal", "Primary")
@@ -475,6 +369,7 @@ if(seriesName == "GSE112282") { #x
   #                            levels=design)
   contrasts <- makeContrasts(Early - Advanced,
                              levels=design)
+  
 } else if (seriesName == "GSE56560") { # x
   # design <- model.matrix(~0+sampleInfo$tissue)
   # design_colnames <- c("Adjacent", "Normal","PDAC")
@@ -486,64 +381,7 @@ if(seriesName == "GSE112282") { #x
   #                            levels=design)
   contrasts <- makeContrasts(G3 - G2,
                              levels=design)
-} else if (seriesName == "GSE55643") {
-  design <- model.matrix(~0+sampleInfo$tissue)
-  design_colnames <- c("Normal","Tumor")
-  colnames(design) <- design_colnames
-  contrasts <- makeContrasts(Tumor - Normal,
-                             levels=design)
-} else if (seriesName == "GSE77858") {
-  design <- model.matrix(~0+sampleInfo$tissue)
-  design_colnames <- c("Normal","Pancreatitis","Tumor")
-  colnames(design) <- design_colnames
-  contrasts <- makeContrasts(Tumor - Normal,
-                             Tumor - Pancreatitis,
-                             levels=design)
-} else if (seriesName == "GSE11838") {
-  design <- model.matrix(~0+sampleInfo$tissue)
-  design_colnames <- c("Normal","Tumor")
-  colnames(design) <- design_colnames
-  contrasts <- makeContrasts(Tumor - Normal,
-                             levels=design)
-} else if (seriesName == "GSE16515") {
-  design <- model.matrix(~0+sampleInfo$tissue)
-  design_colnames <- c("Normal","Tumor")
-  colnames(design) <- design_colnames
-  contrasts <- makeContrasts(Tumor - Normal,
-                             levels=design)
 }
-# if (seriesName = "GSE60980") {
-#   design <- model.matrix(~0+sampleInfo$tissue)
-#   design_colnames <- c("Normal", "AmpullaIntestinal", "AmpullaPanc", "Bile", "Duodenal","PDAC")
-#   colnames(design) <- design_colnames
-#   contrasts <- makeContrasts(PDAC - Normal,
-#                              PDAC - AmpullaIntestinal,
-#                              PDAC - AmpullaPanc,
-#                              PDAC - Bile,
-#                              PDAC - Duodenal,
-#                              levels=design)
-# }
-# if(seriesName == "GSE57495") {
-#   # design <- model.matrix(~0+sampleInfo$risk)
-#   # design_colnames <- c("HighRisk","LowRisk")
-#   # colnames(design) <- design_colnames
-#   # contrasts <- makeContrasts(LowRisk - HighRisk, 
-#   #                            levels=design)
-#   design <- model.matrix(~0+sampleInfo$stage)
-#   # design_colnames <- c("g1","g1b","g2a","g2b")
-#   # colnames(design) <- design_colnames
-#   # contrasts <- makeContrasts("g1b - g1",
-#   #                            "g2a - g1",
-#   #                            "g2a - g1b",
-#   #                            "g2b - g1",
-#   #                            "g2b - g1b",
-#   #                            "g2b - g2a",
-#   #                            levels=design)
-#   design_colnames <- c("g1","g2")
-#   colnames(design) <- design_colnames
-#   contrasts <- makeContrasts("g2 - g1",
-#                              levels=design)
-# }
 design
 
 eset <- exprs(gse)
@@ -552,9 +390,7 @@ eset <- exprs(gse)
 ## Prepare the expression data if necessary ##
 ##############################################
 if (seriesName == "GSE28735"  # x
-    || seriesName == "GSE62452"
     || seriesName == "GSE62165" # x
-    #|| seriesName == "GSE57495"
     || seriesName == "GSE56560") {  # x
   library(tidyr)
   
@@ -675,7 +511,6 @@ vennDiagram(results)
 
 # Print top 10 DEG with meaningful name
 if (seriesName != "GSE28735"  # x
-    && seriesName != "GSE62452"
     && seriesName != "GSE62165" # x
     && seriesName != "GSE56560" # x
     && seriesName != "GSE71729") { # x
@@ -712,17 +547,13 @@ topTable(fit2)
 # results[,4]
 
 # make a boolean index vector based on criteria
-if (seriesName == "GSE14426" # x
-    || seriesName == "GSE77858") {
+if (seriesName == "GSE14426") { # x
   iv <- results[,1] != 0 & results[,2] != 0
 } else if (seriesName == "GSE112282") { #x
   iv <- results[,1] != 0 & results[,2] != 0 & results[,3] != 0
 } else if (seriesName == "GSE45757"  # x
            || seriesName == "GSE28735" # x
-    || seriesName == "GSE62452"
     || seriesName == "GSE21501" # x
-    || seriesName == "GSE15471" || seriesName == "GSE55643"
-    || seriesName == "GSE11838" || seriesName == "GSE16515"
     || seriesName == "GSE62165"  # x
     || seriesName == "GSE71729" # x
     || seriesName == "GSE56560") { # x
