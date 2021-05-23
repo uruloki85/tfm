@@ -18,7 +18,7 @@ library(ggplot2)
 ##                              Get the data                                 ##
 ###############################################################################
 
-seriesName <- "GSE28735"
+seriesName <- "GSE45757"
 do_volcano_plots <- FALSE
 
 gse <- getGEO(seriesName, GSEMatrix=TRUE, getGPL=TRUE)
@@ -504,7 +504,7 @@ if (seriesName == "GSE62165") { # x
   results <- decideTests(fit2, p.value = 0.6)  
 } else if (seriesName == "GSE28735") { # x
   # tried: 0.8 (177 DEG), 0.85 (219), 0.9 (2560), 1.0 (all are detected as DEG)
-  results <- decideTests(fit2, p.value = 0.8)
+  results <- decideTests(fit2, p.value = 0.85)
   # results <- decideTests(fit2)
 } else if (seriesName == "GSE71729") { # x
   # tried: 0.5 (26), 0.65 (235)
@@ -570,16 +570,17 @@ topTable(fit2)
 # results[,4]
 
 # make a boolean index vector based on criteria
-if (seriesName == "GSE14426") { # x
+if (seriesName == "GSE14426") {
   iv <- results[,1] != 0 & results[,2] != 0
-} else if (seriesName == "GSE112282") { #x
+} else if (seriesName == "GSE112282"
+           || seriesName == "GSE28735") {
   iv <- results[,1] != 0 & results[,2] != 0 & results[,3] != 0
-} else if (seriesName == "GSE45757"  # x
-           || seriesName == "GSE28735" # x
-    || seriesName == "GSE21501" # x
-    || seriesName == "GSE62165"  # x
-    || seriesName == "GSE71729" # x
-    || seriesName == "GSE56560") { # x
+} else if (seriesName == "GSE45757" 
+           # || seriesName == "GSE28735"
+           || seriesName == "GSE21501"
+           || seriesName == "GSE62165"
+           || seriesName == "GSE71729"
+           || seriesName == "GSE56560") { 
   iv <- results[,1] != 0
 }
 
@@ -592,19 +593,30 @@ length(deg)
 # Get top DEG #
 ###############
 do_top_x = FALSE
-if (seriesName == "") {
+if (seriesName == "GSE112282") {
+  res_df_GSE112282 <- data.frame(fit2$genes[iv], fit2$F.p.value[iv])
   do_top_x = TRUE
-  topValue <- 800
+  top_value <- 150
+} else if (seriesName == "GSE45757") {
+  res_df_GSE45757 <- data.frame(fit2$genes[iv], fit2$F.p.value[iv])
+  do_top_x = TRUE
+  top_value <-300
 }
+
+do_top_x = FALSE
+
 
 if (do_top_x) {
   # Get genes and p.values
   res_df <- data.frame(fit2$genes[iv], fit2$F.p.value[iv])
+  # res_df <- res_df_GSE112282
+  # res_df <- res_df_GSE45757
+  
   colnames(res_df) <- c("Gene","F.p.value")
   res_df$Gene[res_df$Gene == ""] <- NA
   res_df <- na.omit(res_df, "Gene")
   # Order by p.value and get top 100
-  top_x <- res_df[order(res_df$F.p.value),][0:topValue,]
+  top_x <- res_df[order(res_df$F.p.value),][0:top_value,]
   deg <- top_x$Gene
   # topTable(fit2, number=30)
 }
@@ -644,12 +656,22 @@ if (seriesName == "GSE71729") { # x
 ##################
 # Save GENE list #
 ##################
+# seriesName = "GSE112282"
+# seriesName = "GSE45757"
 
-write.table(unique(mapped_to_hgnc), 
-            file=paste(seriesName,"common_genes.csv", sep="_"), 
-            col.names = "HGNC", 
-            row.names = FALSE,
-            quote = FALSE) 
+if (do_top_x) {
+  write.table(unique(mapped_to_hgnc), 
+              file=paste(seriesName,"narrowed_common_genes.csv", sep="_"), 
+              col.names = "HGNC", 
+              row.names = FALSE,
+              quote = FALSE) 
+} else {
+  write.table(unique(mapped_to_hgnc), 
+              file=paste(seriesName,"common_genes.csv", sep="_"), 
+              col.names = "HGNC", 
+              row.names = FALSE,
+              quote = FALSE) 
+}
 
 ###############################################################################
 ##                              Volcano plot                                  #

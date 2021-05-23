@@ -3,24 +3,15 @@
 ###############################################################################
 library(data.table)
 
-# series_treatment_vs_outcome <- "GSE45757", "GSE112282", "GSE14426", 
-# discarded: GSE37645
-# series_gene_exp_vs_outcome <- c("GSE28735", "GSE62452", "GSE21501", 
-# "GSE62165", "GSE57495")
-
 ########################
 # Treatment vs outcome #
 ########################
 
 series1 <- read.csv(file = "GSE112282_common_genes.csv", header = TRUE)
 series2 <- read.csv(file = "GSE45757_common_genes.csv", header = TRUE)
-# series3 = read.csv(file = "GSE14426_common_genes.csv", header = TRUE)
 series3 <- read.csv(file = "GSE14426_common_genes.csv", header = TRUE)
-series4 <- read.csv(file = "GSE55643_common_genes.csv", header = TRUE)
-series5 <- read.csv(file = "GSE77858_common_genes.csv", header = TRUE)
-series6 <- read.csv(file = "GSE11838_common_genes.csv", header = TRUE)
 
-common_treatment_vs_outcome <- rbindlist(mget(paste0("series", 1:6)))[, .N, HGNC]
+common_treatment_vs_outcome <- rbindlist(mget(paste0("series", 1:3)))[, .N, HGNC]
 common_treatment_vs_outcome[order(-N,HGNC)]
 colnames(common_treatment_vs_outcome)[2] <- "count"
 # Save as CSV
@@ -72,5 +63,27 @@ colnames(common)[2] <- "count"
 common_to_both_groups <- common[common$count == 2]
 write.csv(common_to_both_groups[order(-count,HGNC)]$HGNC,
           file="signature_final.csv", 
+          quote = FALSE,
+          row.names = FALSE)
+
+
+
+###################################
+# Treatment vs outcome - Narrowed #
+###################################
+
+series11 <- read.csv(file = "GSE112282_narrowed_common_genes.csv", header = TRUE)
+series12 <- read.csv(file = "GSE45757_narrowed_common_genes.csv", header = TRUE)
+series13 <- read.csv(file = "GSE14426_common_genes.csv", header = TRUE)
+
+common_treatment_vs_outcome_narrowed <- rbindlist(mget(paste0("series1", 1:3)))[, .N, HGNC]
+common_treatment_vs_outcome_narrowed[order(-N,HGNC)]
+colnames(common_treatment_vs_outcome_narrowed)[2] <- "count"
+
+table(common_treatment_vs_outcome_narrowed$count)
+
+# Save as CSV
+write.csv(common_treatment_vs_outcome_narrowed[order(-count,HGNC)],
+          file="signature_treatment_vs_outcome_narrowed.csv", 
           quote = FALSE,
           row.names = FALSE)
