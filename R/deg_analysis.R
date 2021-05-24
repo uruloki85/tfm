@@ -18,7 +18,7 @@ library(ggplot2)
 ##                              Get the data                                 ##
 ###############################################################################
 
-seriesName <- "GSE45757"
+seriesName <- "GSE71729"
 do_volcano_plots <- FALSE
 
 gse <- getGEO(seriesName, GSEMatrix=TRUE, getGPL=TRUE)
@@ -51,6 +51,14 @@ boxplot(exprs(gse),
 ###############################################################################
 ##                              Metadata                                     ##
 ###############################################################################
+
+#####################################
+# Conversion from survival to stage #
+#####################################
+stages_mst <- data.frame(c(21.44,11.84,8,3), 
+                         c(0, 11.84+11.84*.4, 8+8*.4, 3+3*.4))
+rownames(stages_mst) <- c('I','II','III','IV')
+colnames(stages_mst) <- c('MST','MST+40%')
 
 ################################################
 ## Get the relevant metadata from the samples ##
@@ -109,20 +117,13 @@ if(seriesName == "GSE112282") { #x
   
   samples_to_keep <- row.names(sampleInfo)
   
-  # 3 -> 822/30= 27.4
-  # 2 -> 599/30= 19.9
-  # 1 -> 474÷30= 15.8
-  # 4a -> 324/30= 10.8
-  # 4b -> 162/30= 5.4
-
-  # Classify into a few groups
+  # sampleInfo$stage[sampleInfo$OS <= stages_mst["IV","MST+40%"]] <- 'IV'
+  # sampleInfo$stage[sampleInfo$OS <= stages_mst["III","MST+40%"]
+  #                  & sampleInfo$OS > stages_mst["IV","MST+40%"]] <- 'III'
+  # sampleInfo$stage[sampleInfo$OS > stages_mst["III","MST+40%"]] <- 'I-II'
   
-  # sampleInfo$stage[sampleInfo$OS <= 5.4] <- 'High'
-  # sampleInfo$stage[sampleInfo$OS <= 10.8 & sampleInfo$OS > 5.4] <- 'Medium'
-  # sampleInfo$stage[sampleInfo$OS > 10.8] <- 'Low'
-  
-  sampleInfo$stage[sampleInfo$OS <= 10.8] <- 'Advanced'
-  sampleInfo$stage[sampleInfo$OS > 10.8] <- 'Early'
+  sampleInfo$stage[sampleInfo$OS <= stages_mst["III","MST+40%"]] <- 'Advanced'
+  sampleInfo$stage[sampleInfo$OS > stages_mst["III","MST+40%"]] <- 'Early'
   
 } else if (seriesName == "GSE56560") { # x
   sampleInfo <- dplyr::select(sampleInfo,
@@ -148,28 +149,13 @@ if(seriesName == "GSE112282") { #x
   
   samples_to_keep <- row.names(sampleInfo)
   
-  
-  stages_mst <- data.frame(c(21.44,11.84,8,3), 
-                           c(0, 11.84+11.84*.4, 8+8*.4, 3+3*.4))
-  rownames(stages_mst) <- c('I','II','III','IV')
-  colnames(stages_mst) <- c('MST','MST+40%')
-  
-  sampleInfo$stage[sampleInfo$OS <= stages_mst["IV","MST+40%"]] <- 'IV'
-  # sampleInfo$stageV[sampleInfo$OS <= stages_mst["IV","MST+40%"]] <- stages_mst["IV","MST+40%"]
-  sampleInfo$stage[sampleInfo$OS <= stages_mst["III","MST+40%"] 
-                   & sampleInfo$OS > stages_mst["IV","MST+40%"]] <- 'III'
-  # sampleInfo$stageV[sampleInfo$OS <= stages_mst["III","MST+40%"] 
-  #                   & sampleInfo$OS > stages_mst["IV","MST+40%"]] <- stages_mst["III","MST+40%"]
-  # sampleInfo$stage[sampleInfo$OS <= stages_mst["II","MST+40%"] 
-  #                  & sampleInfo$OS > stages_mst["III","MST+40%"]] <- 'II'
-  # sampleInfo$stageV[sampleInfo$OS <= stages_mst["II","MST+40%"] &
-  #                     sampleInfo$OS > stages_mst["III","MST+40%"]] <- stages_mst["II","MST+40%"]
-  # sampleInfo$stage[sampleInfo$OS > stages_mst["II","MST+40%"]] <- 'I'
-  # sampleInfo$stageV[sampleInfo$OS > stages_mst["II","MST+40%"]] <- stages_mst["II","MST+40%"]
-  sampleInfo$stage[sampleInfo$OS > stages_mst["III","MST+40%"]] <- 'I-II'
+  # sampleInfo$stage[sampleInfo$OS <= stages_mst["IV","MST+40%"]] <- 'IV'
+  # sampleInfo$stage[sampleInfo$OS <= stages_mst["III","MST+40%"] 
+  #                  & sampleInfo$OS > stages_mst["IV","MST+40%"]] <- 'III'
+  # sampleInfo$stage[sampleInfo$OS > stages_mst["III","MST+40%"]] <- 'I-II'
 
-  # sampleInfo$stage[sampleInfo$OS <= 10.8] <- 'Advanced'
-  # sampleInfo$stage[sampleInfo$OS > 10.8] <- 'Early'
+  sampleInfo$stage[sampleInfo$OS <= stages_mst["III","MST+40%"]] <- 'Advanced'
+  sampleInfo$stage[sampleInfo$OS > stages_mst["III","MST+40%"]] <- 'Early'
   
 } else if (seriesName == "GSE21501") { # x
   sampleInfo <- dplyr::select(sampleInfo, 
@@ -199,12 +185,14 @@ if(seriesName == "GSE112282") { #x
   # sampleInfo <- rename(sampleInfo,
   #                      stage="grouped stage:ch1")
   sampleInfo <- dplyr::select(sampleInfo,
-                              "Stage:ch1")
+                              "Stage:ch1", "tissue:ch1")
   sampleInfo <- dplyr::rename(sampleInfo,
-                              stage="Stage:ch1")
+                              stage="Stage:ch1", 
+                              tissue= "tissue:ch1")
+  sampleInfo <- sampleInfo[sampleInfo$tissue == "pancreatic tumor", ]
   # Remove samples with NA value
-  sampleInfo[sampleInfo == "NA"] <- NA
-  sampleInfo <- na.omit(sampleInfo, "stage")
+  # sampleInfo[sampleInfo == "NA"] <- NA
+  # sampleInfo <- na.omit(sampleInfo, "stage")
   
   # Convert to 4 groups: Early (1,2) & Advanced (3,4) stages
   sampleInfo$stage[sampleInfo$stage == "1a"] <- "Early"
@@ -355,14 +343,14 @@ if(seriesName == "GSE112282") { #x
   #                            Primary - Normal,
   #                            levels=design)
   design <- model.matrix(~0+sampleInfo$stage)
-  # design_colnames <- c("High", "Low","Medium")
-  design_colnames <- c("Advanced", "Early")
-  # design_colnames <- c("High", "Low","Medium","Tumor")
-  colnames(design) <- design_colnames
-  # contrasts <- makeContrasts(Low - High,
-  #                            Medium - Low,
-  #                            Medium - High,
+
+  # colnames(design) <- c("I","III","IV")
+  # contrasts <- makeContrasts(IV - III,
+  #                            IV - I,
+  #                            III - I,
   #                            levels=design)
+  
+  colnames(design) <- c("Advanced", "Early")
   contrasts <- makeContrasts(Early - Advanced,
                              levels=design)
   
@@ -379,18 +367,19 @@ if(seriesName == "GSE112282") { #x
   # design_colnames <- c("Advanced", "Early", "Tumor")
   # design_colnames <- c("High", "Low","Medium","Tumor")
   design <- model.matrix(~0+sampleInfo$stage)
-  design_colnames <- c("I","III","IV")
-  colnames(design) <- design_colnames
-  contrasts <- makeContrasts(IV - III,
-                             IV - I,
-                             III - I,
-                             levels=design)
+  # design_colnames <- c("I","III","IV")
+  # colnames(design) <- design_colnames
+  # contrasts <- makeContrasts(IV - III,
+  #                            IV - I,
+  #                            III - I,
+  #                            levels=design)
   # contrasts <- makeContrasts(Low - High,
   #                            Medium - Low,
   #                            Medium - High,
   #                            levels=design)
-  # contrasts <- makeContrasts(Early - Advanced,
-  #                            levels=design)
+  colnames(design) <- c("Advanced","Early")
+  contrasts <- makeContrasts(Early - Advanced,
+                             levels=design)
   
 } else if (seriesName == "GSE56560") { # x
   # design <- model.matrix(~0+sampleInfo$tissue)
@@ -502,13 +491,17 @@ topTable(fit2)
 
 if (seriesName == "GSE62165") { # x
   results <- decideTests(fit2, p.value = 0.6)  
+  # results <- decideTests(fit2, p.value = 0.4)  
 } else if (seriesName == "GSE28735") { # x
-  # tried: 0.8 (177 DEG), 0.85 (219), 0.9 (2560), 1.0 (all are detected as DEG)
-  results <- decideTests(fit2, p.value = 0.85)
+  # 3 groups: 0.8 (177 DEG), 0.85 (219), 0.9 (2560), 1.0 (all are detected as DEG)
+  # 2 groups: 0.05 (8 DEG), 0.1 (8), 0.2 (103), 0.25 (317), 0.3 (1773)
+  results <- decideTests(fit2, p.value = 0.25)
   # results <- decideTests(fit2)
 } else if (seriesName == "GSE71729") { # x
   # tried: 0.5 (26), 0.65 (235)
-  results <- decideTests(fit2, p.value = 0.65)
+  # 3 groups: no DEG
+  # 2 groups: 0.05 (0), 0.4 (29), 0.5 (42)
+  results <- decideTests(fit2, p.value = 0.6)
 } else if (seriesName == "GSE56560") { # x
   # tried: 0.5 (40), 0.6 (43), 0.65 (151), 0.7 (242)
   results <- decideTests(fit2, p.value = 0.65)
@@ -573,10 +566,11 @@ topTable(fit2)
 if (seriesName == "GSE14426") {
   iv <- results[,1] != 0 & results[,2] != 0
 } else if (seriesName == "GSE112282"
-           || seriesName == "GSE28735") {
+           # || seriesName == "GSE28735"
+           ) {
   iv <- results[,1] != 0 & results[,2] != 0 & results[,3] != 0
 } else if (seriesName == "GSE45757" 
-           # || seriesName == "GSE28735"
+           || seriesName == "GSE28735"
            || seriesName == "GSE21501"
            || seriesName == "GSE62165"
            || seriesName == "GSE71729"
