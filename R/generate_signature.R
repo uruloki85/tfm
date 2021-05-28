@@ -7,8 +7,8 @@ library(data.table)
 # Treatment vs outcome #
 ########################
 
-series1 <- read.csv(file = "GSE112282_common_genes.csv", header = TRUE)
-series2 <- read.csv(file = "GSE45757_common_genes.csv", header = TRUE)
+series1 <- read.csv(file = "results/GSE112282_common_genes.csv", header = TRUE)
+series2 <- read.csv(file = "results/GSE45757_common_genes.csv", header = TRUE)
 series3 <- read.csv(file = "GSE14426_common_genes.csv", header = TRUE)
 
 common_treatment_vs_outcome <- rbindlist(mget(paste0("series", 1:3)))[, .N, HGNC]
@@ -24,7 +24,7 @@ write.csv(common_treatment_vs_outcome[order(-count,HGNC)],
 # Gene expression vs outcome #
 ##############################
 
-series20 <- read.csv(file = "GSE21501_common_genes.csv", header = TRUE)
+series20 <- read.csv(file = "results/GSE21501_common_genes.csv", header = TRUE)
 series21 <- read.csv(file = "GSE28735_common_genes.csv", header = TRUE)
 series22 <- read.csv(file = "GSE62165_common_genes.csv", header = TRUE)
 series23 <- read.csv(file = "GSE71729_common_genes.csv", header = TRUE)
@@ -51,8 +51,8 @@ table(common_g_expr_vs_outcome$count)
 ##################
 # Common to both #
 ##################
-subset1 <- as.data.frame(common_treatment_vs_outcome[common_treatment_vs_outcome$count >= 1]$HGNC)
-subset2 <- as.data.frame(common_g_expr_vs_outcome[common_g_expr_vs_outcome$count >= 1]$HGNC)
+subset1 <- as.data.frame(common_treatment_vs_outcome[common_treatment_vs_outcome$count >= 2]$HGNC)
+subset2 <- as.data.frame(common_g_expr_vs_outcome[common_g_expr_vs_outcome$count >= 2]$HGNC)
 colnames(subset1)[1] <- "HGNC"
 colnames(subset2)[1] <- "HGNC"
 
@@ -72,9 +72,9 @@ table(common$count)
 # Treatment vs outcome - Narrowed #
 ###################################
 
-series11 <- read.csv(file = "GSE112282_narrowed_common_genes.csv", header = TRUE)
-series12 <- read.csv(file = "GSE45757_narrowed_common_genes.csv", header = TRUE)
-series13 <- read.csv(file = "GSE14426_common_genes.csv", header = TRUE)
+series11 <- read.csv(file = "results/GSE112282_narrowed_common_genes.csv", header = TRUE)
+series12 <- read.csv(file = "results/GSE45757_narrowed_common_genes.csv", header = TRUE)
+series13 <- read.csv(file = "results/GSE14426_common_genes.csv", header = TRUE)
 
 common_treatment_vs_outcome_narrowed <- rbindlist(mget(paste0("series1", 1:3)))[, .N, HGNC]
 common_treatment_vs_outcome_narrowed[order(-N,HGNC)]
@@ -92,11 +92,11 @@ write.csv(common_treatment_vs_outcome_narrowed[order(-count,HGNC)],
 #########################################
 # Gene expression vs outcome - Narrowed #
 #########################################
-series30 <- read.csv(file = "GSE21501_common_genes.csv", header = TRUE)
-series31 <- read.csv(file = "GSE28735_common_genes.csv", header = TRUE)
-series32 <- read.csv(file = "GSE62165_narrowed_common_genes.csv", header = TRUE)
-series33 <- read.csv(file = "GSE71729_common_genes.csv", header = TRUE)
-series34 <- read.csv(file = "GSE56560_common_genes.csv", header = TRUE)
+series30 <- read.csv(file = "results/GSE21501_common_genes.csv", header = TRUE)
+series31 <- read.csv(file = "results/GSE28735_common_genes.csv", header = TRUE)
+series32 <- read.csv(file = "results/GSE62165_narrowed_common_genes.csv", header = TRUE)
+series33 <- read.csv(file = "results/GSE71729_common_genes.csv", header = TRUE)
+series34 <- read.csv(file = "results/GSE56560_common_genes.csv", header = TRUE)
 # series25 <- read.csv(file = "GSE15471_common_genes.csv", header = TRUE)
 
 common_g_expr_vs_outcome_narrowed <- rbindlist(mget(paste0("series", 30:34)))[, .N, HGNC]

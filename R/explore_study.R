@@ -90,15 +90,19 @@ subacc_wide_only_dead <- fix_col_names(subacc_wide_only_dead)
 # gene_signature <- gene_signature_df[['x']]
 
 # Get signature for "Gene expression vs outcome"
-gene_signature_df <- read.csv(file = "signature_gene_expression_vs_outcome.csv", header = TRUE)
-gene_signature <- gene_signature_df[gene_signature_df$count >= 2, ][['HGNC']]
-length(gene_signature) #28
+signature_gene_exp_vs_outcome_df <- read.csv(file = "signature_gene_expression_vs_outcome.csv", header = TRUE)
+signature_gene_exp_vs_outcome <- signature_gene_exp_vs_outcome_df[signature_gene_exp_vs_outcome_df$count >= 3, ][['HGNC']]
+length(signature_gene_exp_vs_outcome) #
 
 # Get signature for "Treatment vs outcome"
-
+signature_treatment_vs_outcome_df <- read.csv(file = "signature_treatment_vs_outcome.csv", header = TRUE)
+signature_treatment_vs_outcome <- signature_treatment_vs_outcome_df[signature_treatment_vs_outcome_df$count >= 3, ][['HGNC']]
+length(signature_treatment_vs_outcome) #
 
 # Get signature common to both groups
-
+signature_final_df <- read.csv(file = "signature_final.csv", header = TRUE)
+signature_final <- signature_final_df[signature_final_df$count >= 2, ][['HGNC']]
+length(signature_final) #
 
 
 library(reshape2)
@@ -141,7 +145,7 @@ create_ggheatmap <- function(metled_corr, title) {
   return (ggheatmap)
 }
 
-calculate_corr_and_heatmap <- function(subacc, title) {
+calculate_corr_and_heatmap <- function(subacc, title, gene_signature) {
   # Find genes in common
   genes_in_common <- intersect(gene_signature,colnames(subacc))
   # length(genes_in_common)
@@ -159,13 +163,36 @@ calculate_corr_and_heatmap <- function(subacc, title) {
   return (ggheatmap)
 }
 
-ggheatmap <- calculate_corr_and_heatmap(subacc_wide, 
-                                        "All patients")
-print(ggheatmap)
-ggheatmap_only_dead <- calculate_corr_and_heatmap(subacc_wide_only_dead, 
-                                                  "Only dead patients")
-print(ggheatmap_only_dead)
 
+# Gene expression vs outcome
+ggheatmap <- calculate_corr_and_heatmap(subacc_wide, 
+                                        "All patients",
+                                        signature_gene_exp_vs_outcome)
+print(ggheatmap)
+ggheatmap_dead <- calculate_corr_and_heatmap(subacc_wide_only_dead, 
+                                             "Only dead patients",
+                                             signature_gene_exp_vs_outcome)
+print(ggheatmap_dead)
+
+# Treatment vs outcome
+ggheatmap <- calculate_corr_and_heatmap(subacc_wide, 
+                                        "All patients",
+                                        signature_treatment_vs_outcome)
+print(ggheatmap)
+ggheatmap_dead <- calculate_corr_and_heatmap(subacc_wide_only_dead, 
+                                             "Only dead patients",
+                                             signature_treatment_vs_outcome)
+print(ggheatmap_dead)
+
+# Final signature
+ggheatmap <- calculate_corr_and_heatmap(subacc_wide, 
+                                        "All patients",
+                                        signature_final)
+print(ggheatmap)
+ggheatmap_dead <- calculate_corr_and_heatmap(subacc_wide_only_dead, 
+                                             "Only dead patients",
+                                             signature_final)
+print(ggheatmap_dead)
 
 
 

@@ -490,23 +490,28 @@ topTable(fit2)
 # Find differentially-expressed genes
 
 if (seriesName == "GSE62165") { # x
-  results <- decideTests(fit2, p.value = 0.6)  
+  # results <- decideTests(fit2, p.value = 0.6)
+  results <- decideTests(fit2, p.value = 0.8)  
   # results <- decideTests(fit2, p.value = 0.4)  
 } else if (seriesName == "GSE28735") { # x
   # 3 groups: 0.8 (177 DEG), 0.85 (219), 0.9 (2560), 1.0 (all are detected as DEG)
   # 2 groups: 0.05 (8 DEG), 0.1 (8), 0.2 (103), 0.25 (317), 0.3 (1773)
-  results <- decideTests(fit2, p.value = 0.25)
+  # results <- decideTests(fit2, p.value = 0.25)
+  results <- decideTests(fit2, p.value = 0.4)
   # results <- decideTests(fit2)
 } else if (seriesName == "GSE71729") { # x
   # tried: 0.5 (26), 0.65 (235)
   # 3 groups: no DEG
   # 2 groups: 0.05 (0), 0.4 (29), 0.5 (42)
-  results <- decideTests(fit2, p.value = 0.6)
+  # results <- decideTests(fit2, p.value = 0.6)
+  results <- decideTests(fit2, p.value = 0.7)
 } else if (seriesName == "GSE56560") { # x
   # tried: 0.5 (40), 0.6 (43), 0.65 (151), 0.7 (242)
-  results <- decideTests(fit2, p.value = 0.65)
+  # results <- decideTests(fit2, p.value = 0.65)
+  results <- decideTests(fit2, p.value = 0.99)
 } else if (seriesName == "GSE14426") { # x
-  results <- decideTests(fit2, p.value = 0.3)
+  # results <- decideTests(fit2, p.value = 0.3)
+  results <- decideTests(fit2, p.value = 0.99)
 } else {
   results <- decideTests(fit2)
 }
