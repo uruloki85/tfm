@@ -10,6 +10,29 @@ study <- cBioDataPack(
   ask = TRUE
 )
 
+##################
+# Get signatures #
+##################
+
+# Get signature for "Gene expression vs outcome"
+signature_gene_exp_vs_outcome_df <-
+  read.csv(file = "signature_gene_expression_vs_outcome.csv", header = TRUE)
+signature_gene_exp_vs_outcome <-
+  signature_gene_exp_vs_outcome_df[signature_gene_exp_vs_outcome_df$count >= 3,][['HGNC']]
+length(signature_gene_exp_vs_outcome) #
+
+# Get signature for "Treatment vs outcome"
+signature_treatment_vs_outcome_df <-
+  read.csv(file = "signature_treatment_vs_outcome.csv", header = TRUE)
+signature_treatment_vs_outcome <-
+  signature_treatment_vs_outcome_df[signature_treatment_vs_outcome_df$count >= 3,][['HGNC']]
+length(signature_treatment_vs_outcome) #
+
+# Get signature common to both groups
+signature_final_df <- read.csv(file = "signature_final.csv", header = TRUE)
+signature_final <- signature_final_df[['x']]
+length(signature_final) #
+
 ####################
 # Prepare the data #
 ####################
@@ -23,22 +46,9 @@ my_data <- wideFormat(subacc, colDataCols=c("PFS_MONTHS"), )
 # Drop column
 my_data$primary <- NULL
 
-
-gene_signature_df <- read.csv(file = "signature_gene_expression_vs_outcome.csv", header = TRUE)
-gene_signature <- gene_signature_df[gene_signature_df$count >= 2, ][['HGNC']]
-length(gene_signature)
-
 my_data <- fix_col_names(my_data)
 
-# Find genes in common
-genes_in_common <- intersect(gene_signature,colnames(my_data))
-# length(genes_in_common)
-cols_subset <- c(genes_in_common, c("PFS_MONTHS"))
-# length(cols_subset)
-
-# Subset the data to only those columns of interest
-my_data <- my_data[,cols_subset]
-
+# Examine variable
 min(my_data$PFS_MONTHS)
 max(my_data$PFS_MONTHS)
 
@@ -48,12 +58,44 @@ hist(my_data$PFS_MONTHS, main="Histogram", xlab="PFS_MONTHS", col="light green")
 # Median
 median(my_data$PFS_MONTHS)
 
+ncol(my_data) # 20532
+nrow(my_data) # 177
+
+find_cols_subset <- function(gene_signature, my_df) {
+  # Find genes in common
+  genes_in_common <- intersect(gene_signature,colnames(my_df))
+  # length(genes_in_common)
+  cols_subset <- c(genes_in_common, c("PFS_MONTHS"))
+  # length(cols_subset)
+  
+  return(cols_subset)
+}
+
+# Subset the data to only those columns of interest
+# my_data <- my_data[,cols_subset]
+
+# Subset data to columns of interest
+my_data_treatment_vs_outcome <- my_data[,find_cols_subset(signature_treatment_vs_outcome, my_data)]
+ncol(my_data_treatment_vs_outcome) # 10
+nrow(my_data_treatment_vs_outcome) # 177
+
+my_data_gene_exp_vs_outcome <- my_data[,find_cols_subset(signature_gene_exp_vs_outcome, my_data)]
+ncol(my_data_gene_exp_vs_outcome) # 18
+nrow(my_data_gene_exp_vs_outcome) # 177
+
+my_data_signature_final <- my_data[,find_cols_subset(signature_final, my_data)]
+ncol(my_data_signature_final) # 18
+nrow(my_data_signature_final) # 177
+
+
 ##################
 # Missing values #
 ##################
 
 # Explore missing values
-sapply(my_data, function(x) sum(is.na(x)))
+sapply(my_data_treatment_vs_outcome, function(x) sum(is.na(x)))
+sapply(my_data_gene_exp_vs_outcome, function(x) sum(is.na(x)))
+sapply(my_data_signature_final, function(x) sum(is.na(x)))
 
 ######################
 # Correlation matrix #
