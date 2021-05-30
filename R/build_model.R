@@ -101,29 +101,78 @@ sapply(my_data_signature_final, function(x) sum(is.na(x)))
 # Correlation matrix #
 ######################
 
-#1st step
-# Correlation matrix with all genes
-my_cors2 <- cor(as.matrix(my_data))
-my_cors2_filtered <- my_cors2["PFS_MONTHS",]
-#abs(my_cors2_filtered) <= .90 & 
-index <- which(abs(my_cors2_filtered) >= .15, arr.ind = T)
-length(my_cors2_filtered[index])
-# my_cors2_filtered[index]
-filtered_gene_names <- names(my_cors2_filtered[index])
-# filtered_gene_names <- filtered_gene_names[-length(filtered_gene_names)]
+find_genes_threshold <- function(my_df, threshold) {
+  # Correlation matrix with all genes
+  my_cors2 <- cor(as.matrix(my_df))
+  my_cors2_filtered <- my_cors2["PFS_MONTHS",]
+  #abs(my_cors2_filtered) <= .90 & 
+  index <- which(abs(my_cors2_filtered) >= threshold, arr.ind = T)
+  length(my_cors2_filtered[index])
+  # my_cors2_filtered[index]
+  filtered_gene_names <- names(my_cors2_filtered[index])
+  # filtered_gene_names <- filtered_gene_names[-length(filtered_gene_names)]
+  
+  return(filtered_gene_names)
+}
 
-my_data <- my_data[,filtered_gene_names]
+# Treatment vs outcome
+#1st step
+filtered_genes_treatment <- find_genes_threshold(my_data_treatment_vs_outcome, 
+                                                            0.1)
+filtered_genes_treatment
+
+my_data_treatment_vs_outcome <-
+  my_data_treatment_vs_outcome[, filtered_genes_treatment]
+ncol(my_data_treatment_vs_outcome) # 5
+nrow(my_data_treatment_vs_outcome) # 177
 
 # 2nd step
-# Correlation matrix with the genes selected in the previous step
-my_cors3 <- cor(as.matrix(my_data[,filtered_gene_names]))
-# Reorder the correlation matrix
-cormat3 <- reorder_cormat(my_cors3)
-cormat3[lower.tri(cormat3)] <- NA
-# Melt the correlation matrix
-melted_cormat3 <- melt(cormat3, na.rm = TRUE)
-ggheatmap <- create_ggheatmap(melted_cormat3,"")
+ggheatmap <- calculate_corr_and_heatmap(my_data_treatment_vs_outcome, 
+                                        "Treatment vs outcome",
+                                        NULL,
+                                        TRUE)
 print(ggheatmap)
+
+# Gene expression vs outcome
+#1st step
+filtered_genes_gene_exp <- find_genes_threshold(my_data_gene_exp_vs_outcome, 
+                                                           0.1)
+filtered_genes_gene_exp
+
+my_data_gene_exp_vs_outcome <-
+  my_data_gene_exp_vs_outcome[, filtered_genes_gene_exp]
+ncol(my_data_gene_exp_vs_outcome) # 13
+nrow(my_data_gene_exp_vs_outcome) # 177
+
+# 2nd step
+ggheatmap <- calculate_corr_and_heatmap(my_data_gene_exp_vs_outcome, 
+                                        "Gene expression vs outcome",
+                                        NULL,
+                                        TRUE)
+print(ggheatmap)
+
+# Common signature
+#1st step
+filtered_genes_final_signature <- find_genes_threshold(my_data_signature_final, 
+                                                       0.1)
+filtered_genes_final_signature
+
+my_data_signature_final <-
+  my_data_signature_final[, filtered_genes_final_signature]
+ncol(my_data_signature_final) # 12
+nrow(my_data_signature_final) # 177
+
+# 2nd step
+ggheatmap <- calculate_corr_and_heatmap(my_data_signature_final, 
+                                        "Common signature",
+                                        NULL,
+                                        TRUE)
+print(ggheatmap)
+
+
+############################################################
+## Only useful if the is some correlation higher than 90% ##
+############################################################
 
 # Discard the diagonal of the matrix
 diag(my_cors3) <- NA 
@@ -143,45 +192,196 @@ library(randomForest)
 # my_data_saved <- my_data
 # my_data <- my_data_saved
 
-# Prepare the class variable using the median of PFS_MONTHS
-median_pfs <- median(my_data$PFS_MONTHS)
-my_data$class[my_data$PFS_MONTHS <= median_pfs] <- "0"
-my_data$class[my_data$PFS_MONTHS > median_pfs] <- "1"
-my_data$class <- as.factor(my_data$class)
-# Check new column
-my_data[,c("PFS_MONTHS","class")]
-# Remove PFS_MONTHS
-my_data$PFS_MONTHS <- NULL
+init_class_col <- function(my_df) {
+  # Prepare the class variable using the median of PFS_MONTHS
+  median_pfs <- median(my_df$PFS_MONTHS)
+  my_df$class[my_df$PFS_MONTHS <= median_pfs] <- "0"
+  my_df$class[my_df$PFS_MONTHS > median_pfs] <- "1"
+  # my_df$class <- as.factor(my_df$class)
+  # Check new column
+  # my_df[,c("PFS_MONTHS","class")]
+  # Remove PFS_MONTHS
+  my_df$PFS_MONTHS <- NULL
+  
+  # my_data$class
+  
+  my_matrix <- as.matrix(my_df)
+  my_df2 <- as.data.frame(my_matrix)
+  my_df2$class <- as.factor(my_df2$class)
+  
+  return(my_df2)
+}
 
-my_data$class
+my_data_treatment_vs_outcome <- init_class_col(my_data_treatment_vs_outcome)
+my_data_treatment_vs_outcome$class
 
-my_matrix <- as.matrix(my_data)
-my_df <- as.data.frame(my_matrix)
-my_df$class <- as.factor(my_df$class)
+my_data_gene_exp_vs_outcome <- init_class_col(my_data_gene_exp_vs_outcome)
+my_data_gene_exp_vs_outcome$class
+
+my_data_signature_final <- init_class_col(my_data_signature_final)
+my_data_signature_final$class
 
 # Set random seed to make results reproducible:
 set.seed(42)
 
-# Calculate the size of each of the data sets:
-data_set_size <- floor(nrow(my_df) * .7)
-# Generate a random sample of "data_set_size" indexes
-indexes <- sample(1:nrow(my_df), size = data_set_size)
+library(caTools)
 
-# Assign the data to the correct sets
-training <- my_df[indexes,]
-validation1 <- my_df[-indexes,]
-nrow(training)
-nrow(validation1)
+# Split data into training and test
+# sample = sample.split(my_data_treatment_vs_outcome$class, SplitRatio = .7)
+# train = subset(my_data_treatment_vs_outcome, sample == TRUE)
+# test  = subset(my_data_treatment_vs_outcome, sample == FALSE)
+# nrow(train)
+# nrow(test)
+# table(train$class)
+# table(test$class)
 
-rf_classifier <- randomForest(class ~ ., data=training, ntree=100, mtry=2)
-rf_classifier
+
+# Split data into training and test
+sample_treatment <- sample.split(my_data_treatment_vs_outcome$class, SplitRatio = .7)
+training_treatment <- subset(my_data_treatment_vs_outcome, sample_treatment == TRUE)
+validation_treatment <- subset(my_data_treatment_vs_outcome, sample_treatment == FALSE)
+nrow(training_treatment)
+nrow(validation_treatment)
+# Check distribution of values -> should be similar in both sets
+table(training_treatment$class)
+table(validation_treatment$class)
+
+# Split data into training and test
+sample_gene_exp <- sample.split(my_data_gene_exp_vs_outcome$class, SplitRatio = .7)
+training_gene_exp <-subset(my_data_gene_exp_vs_outcome, sample_gene_exp == TRUE)
+validation_gene_exp <- subset(my_data_gene_exp_vs_outcome, sample_gene_exp == FALSE)
+nrow(training_gene_exp)
+nrow(validation_gene_exp)
+table(training_gene_exp$class)
+table(validation_gene_exp$class)
+
+# Split data into training and test
+sample_final <- sample.split(my_data_signature_final$class, SplitRatio = .7)
+training_common <-subset(my_data_signature_final, sample_final == TRUE)
+validation_common <- subset(my_data_signature_final, sample_final == FALSE)
+nrow(training_common)
+nrow(validation_common)
+table(training_common$class)
+table(validation_common$class)
+
+# Model
+
+# Find best mtry for each signature
+
+# Treatment vs outcome
+mtry_treatment <- tuneRF(my_data_treatment_vs_outcome[,1:ncol(my_data_treatment_vs_outcome)-1], 
+               my_data_treatment_vs_outcome$class, 
+               ntreeTry=500,
+               stepFactor=1.5, 
+               improve=0.001, 
+               trace=TRUE, 
+               plot=TRUE)
+best_mtry_treatment <- mtry_treatment[mtry_treatment[, 2] == min(mtry_treatment[, 2]), 1]
+mtry_treatment
+best_mtry_treatment
+
+# Gene expression vs outcome
+mtry_gene_exp <- tuneRF(my_data_gene_exp_vs_outcome[,1:ncol(my_data_gene_exp_vs_outcome)-1], 
+                        my_data_gene_exp_vs_outcome$class, 
+                         ntreeTry=500,
+                         stepFactor=1.5, 
+                         improve=0.001, 
+                         trace=TRUE, 
+                         plot=TRUE)
+best_mtry_gene_exp <- mtry_gene_exp[mtry_gene_exp[, 2] == min(mtry_gene_exp[, 2]), 1]
+mtry_gene_exp
+best_mtry_gene_exp
+
+# Common signature
+mtry_common <- tuneRF(my_data_signature_final[,1:ncol(my_data_signature_final)-1], 
+                        my_data_signature_final$class, 
+                        ntreeTry=1500,
+                        stepFactor=1.5, 
+                        improve=0.001, 
+                        trace=TRUE, 
+                        plot=TRUE)
+best_mtry_common <- mtry_common[mtry_common[, 2] == min(mtry_common[, 2]), 1]
+mtry_common
+best_mtry_common # 4, 6
+
+# Build model using this mtry
+
+# Treatment vs outcome
+rf_common <- randomForest(class ~ ., data=my_data_signature_final, ntree=1500, mtry=6, importance=TRUE)
+rf_common
 # varImpPlot(rf_classifier)
 
 #predicting the class for the test data set
-tree.pred1 <- predict(rf_classifier,validation1,type="class")
+pred_common <- predict(rf_common,validation_common,type="class")
 
 #creating confusion matrix
-table(tree.pred1,validation1$class) 
+table(pred_common,validation_common$class) 
+rf_common$importance
+varImpPlot(rf_common)
 
+
+# Performance
+pred1 <- predict(rf_common, type = "prob")
+
+library(ROCR)
+
+perf = prediction(pred1[,2], training_common$class)
+# 1. Area under curve
+auc = performance(perf, "auc")
+auc
+# 2. True Positive and Negative Rate
+pred3 = performance(perf, "tpr","fpr")
+# 3. Plot the ROC curve
+plot(pred3,main="ROC Curve for Random Forest",col=2,lwd=2)
+abline(a=0,b=1,lwd=2,lty=2,col="gray")
+
+
+library(caret)
+library(e1071)
+
+set.seed(42)
+
+# Define the control
+trControl <- trainControl(method = "cv",
+                          number = 10,
+                          search = "grid")
+
+rf_default <- train(class~.,
+                    data = training_common,
+                    method = "rf",
+                    metric = "Accuracy",
+                    trControl = trControl,
+                    importance = TRUE)
+
+tuneGrid <- expand.grid(.mtry = c(2,4,6,10,13,17))
+rf_default <- train(class~.,
+                    data = training_common,
+                    method = "rf",
+                    metric = "Accuracy",
+                    trControl = trControl,
+                    tuneGrid = tuneGrid,
+                    importance = TRUE)
+print(rf_default)
+best_mtry <- rf_default$bestTune$mtry 
+best_mtry
+
+
+tuneGrid <- expand.grid(.mtry = best_mtry)
+store_maxtrees <- list()
+for (ntree in c(250, 300, 350, 400, 450, 500, 550, 600, 800, 1000, 2000)) {
+  # Run the model
+  rf_maxtrees <- train(class~.,
+                      data = training_common,
+                      method = "rf",
+                      metric = "Accuracy",
+                      trControl = trControl,
+                      tuneGrid = tuneGrid,
+                      ntree = ntree,
+                      importance = TRUE)
+  key <- toString(ntree)
+  store_maxtrees[[key]] <- rf_maxtrees
+}
+results_tree <- resamples(store_maxtrees)
+summary(results_tree)
 
 

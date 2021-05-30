@@ -36,10 +36,14 @@ install.packages("UpSetR")
 install.packages("survminer")
 # install.packages("pheatmap")
 install.packages("reshape2")
-# install.packages("randomForest")
+install.packages("randomForest")
 
+install.packages("caTools")
+install.packages("ROCR")
+install.packages("caret")
+install.packages("e1071")
 
-deps <- tools::package_dependencies("ggplot2", recursive = TRUE)$ggplot2
-for (dep in deps)
-  try(install.packages(dep))
+# deps <- tools::package_dependencies("ggplot2", recursive = TRUE)$ggplot2
+# for (dep in deps)
+#   try(install.packages(dep))
 

@@ -51,16 +51,27 @@ create_ggheatmap <- function(metled_corr, title) {
   return (ggheatmap)
 }
 
-calculate_corr_and_heatmap <- function(subacc, title, gene_signature) {
-  # Find genes in common
-  genes_in_common <- intersect(gene_signature,colnames(subacc))
-  # length(genes_in_common)
-  cols_subset <- c(genes_in_common, c("OS_MONTHS","DSS_MONTHS","PFS_MONTHS"))
-  # length(cols_subset)
-  
-  mycors <- cor(as.matrix(subacc[,cols_subset]))
-  # Reorder the correlation matrix
-  cormat <- reorder_cormat(mycors)
+calculate_corr_and_heatmap <- function(subacc, title, gene_signature=NULL, reorder_corr=TRUE) {
+  if(is.null(gene_signature)) {
+    # Calculate correlation
+    mycors <- cor(as.matrix(subacc[,]))
+    
+  } else {
+    # Find genes in common
+    genes_in_common <- intersect(gene_signature,colnames(subacc))
+    # length(genes_in_common)
+    cols_subset <- c(genes_in_common, c("OS_MONTHS","DSS_MONTHS","PFS_MONTHS"))
+    # length(cols_subset)
+    
+    # Calculate correlation
+    mycors <- cor(as.matrix(subacc[,cols_subset]))    
+  }
+  if(reorder_corr) {
+    # Reorder the correlation matrix
+    cormat <- reorder_cormat(mycors)
+  } else {
+    cormat <- mycors
+  }
   # cormat <- mycors
   cormat[lower.tri(cormat)] <- NA
   # Melt the correlation matrix
