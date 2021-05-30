@@ -193,6 +193,8 @@ library(randomForest)
 # my_data <- my_data_saved
 
 init_class_col <- function(my_df) {
+  # my_df <- my_data_treatment_vs_outcome
+  
   # Prepare the class variable using the median of PFS_MONTHS
   median_pfs <- median(my_df$PFS_MONTHS)
   my_df$class[my_df$PFS_MONTHS <= median_pfs] <- "0"
@@ -205,9 +207,12 @@ init_class_col <- function(my_df) {
   
   # my_data$class
   
-  my_matrix <- as.matrix(my_df)
-  my_df2 <- as.data.frame(my_matrix)
+  my_df2 <- as.data.frame(my_df@listData)
+  
+  # my_matrix <- data.matrix(my_df) # as.matrix(my_df)
+  # my_df2 <- as.data.frame(my_matrix)
   my_df2$class <- as.factor(my_df2$class)
+  # my_df2
   
   return(my_df2)
 }
@@ -352,8 +357,10 @@ rf_default <- train(class~.,
                     metric = "Accuracy",
                     trControl = trControl,
                     importance = TRUE)
+print(rf_default)
 
-tuneGrid <- expand.grid(.mtry = c(2,4,6,10,13,17))
+# Search best mtry
+tuneGrid <- expand.grid(.mtry = c(2,4,6,10,11,13,17))
 rf_default <- train(class~.,
                     data = training_common,
                     method = "rf",
@@ -363,7 +370,7 @@ rf_default <- train(class~.,
                     importance = TRUE)
 print(rf_default)
 best_mtry <- rf_default$bestTune$mtry 
-best_mtry
+best_mtry # 10
 
 
 tuneGrid <- expand.grid(.mtry = best_mtry)
@@ -382,6 +389,19 @@ for (ntree in c(250, 300, 350, 400, 450, 500, 550, 600, 800, 1000, 2000)) {
   store_maxtrees[[key]] <- rf_maxtrees
 }
 results_tree <- resamples(store_maxtrees)
-summary(results_tree)
+summary(results_tree) # 400 (57%)
 
+colnames(training_common)
+colnames(validation_common)
+
+fit_rf <- train(class~.,
+                training_common,
+                method = "rf",
+                metric = "Accuracy",
+                tuneGrid = tuneGrid,
+                trControl = trControl,
+                importance = TRUE,
+                ntree = 400)
+prediction <- predict(fit_rf, validation_common)
+confusionMatrix(prediction, validation_common$class)
 
