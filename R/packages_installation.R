@@ -40,6 +40,7 @@ install.packages("randomForest")
 
 install.packages("caTools")
 install.packages("ROCR")
+install.packages("plotROC")
 install.packages("caret")
 install.packages("e1071")
 

@@ -184,10 +184,9 @@ if (index > 0) {
   names(my_data[index])
 }
 
-###################################
-#               Model             #
-###################################
-library(randomForest)
+##########################################
+#               Prepare data             #
+##########################################
 
 # my_data_saved <- my_data
 # my_data <- my_data_saved
@@ -197,8 +196,8 @@ init_class_col <- function(my_df) {
   
   # Prepare the class variable using the median of PFS_MONTHS
   median_pfs <- median(my_df$PFS_MONTHS)
-  my_df$class[my_df$PFS_MONTHS <= median_pfs] <- "0"
-  my_df$class[my_df$PFS_MONTHS > median_pfs] <- "1"
+  my_df$class[my_df$PFS_MONTHS <= median_pfs] <- "X0"
+  my_df$class[my_df$PFS_MONTHS > median_pfs] <- "X1"
   # my_df$class <- as.factor(my_df$class)
   # Check new column
   # my_df[,c("PFS_MONTHS","class")]
@@ -217,6 +216,7 @@ init_class_col <- function(my_df) {
   return(my_df2)
 }
 
+# Initialize variable to predict: 0 (Bad prognosis), 1 (Good prognosis)
 my_data_treatment_vs_outcome <- init_class_col(my_data_treatment_vs_outcome)
 my_data_treatment_vs_outcome$class
 
@@ -232,137 +232,87 @@ set.seed(42)
 library(caTools)
 
 # Split data into training and test
-# sample = sample.split(my_data_treatment_vs_outcome$class, SplitRatio = .7)
-# train = subset(my_data_treatment_vs_outcome, sample == TRUE)
-# test  = subset(my_data_treatment_vs_outcome, sample == FALSE)
-# nrow(train)
-# nrow(test)
-# table(train$class)
-# table(test$class)
-
-
-# Split data into training and test
-sample_treatment <- sample.split(my_data_treatment_vs_outcome$class, SplitRatio = .7)
-training_treatment <- subset(my_data_treatment_vs_outcome, sample_treatment == TRUE)
-validation_treatment <- subset(my_data_treatment_vs_outcome, sample_treatment == FALSE)
+sample_treatment <- sample.split(my_data_treatment_vs_outcome$class, 
+                                 SplitRatio = .6)
+training_treatment <- subset(my_data_treatment_vs_outcome, 
+                             sample_treatment == TRUE)
+test_treatment <- subset(my_data_treatment_vs_outcome, 
+                         sample_treatment == FALSE)
 nrow(training_treatment)
-nrow(validation_treatment)
+nrow(test_treatment)
 # Check distribution of values -> should be similar in both sets
 table(training_treatment$class)
-table(validation_treatment$class)
+table(test_treatment$class)
 
 # Split data into training and test
-sample_gene_exp <- sample.split(my_data_gene_exp_vs_outcome$class, SplitRatio = .7)
-training_gene_exp <-subset(my_data_gene_exp_vs_outcome, sample_gene_exp == TRUE)
-validation_gene_exp <- subset(my_data_gene_exp_vs_outcome, sample_gene_exp == FALSE)
+sample_gene_exp <- sample.split(my_data_gene_exp_vs_outcome$class, 
+                                SplitRatio = .6)
+training_gene_exp <- subset(my_data_gene_exp_vs_outcome, 
+                            sample_gene_exp == TRUE)
+test_gene_exp <- subset(my_data_gene_exp_vs_outcome, 
+                        sample_gene_exp == FALSE)
 nrow(training_gene_exp)
-nrow(validation_gene_exp)
+nrow(test_gene_exp)
 table(training_gene_exp$class)
-table(validation_gene_exp$class)
+table(test_gene_exp$class)
 
 # Split data into training and test
-sample_final <- sample.split(my_data_signature_final$class, SplitRatio = .7)
-training_common <-subset(my_data_signature_final, sample_final == TRUE)
-validation_common <- subset(my_data_signature_final, sample_final == FALSE)
+sample_final <- sample.split(my_data_signature_final$class, 
+                             SplitRatio = .7)
+training_common <- subset(my_data_signature_final, 
+                          sample_final == TRUE)
+test_common <- subset(my_data_signature_final, 
+                      sample_final == FALSE)
 nrow(training_common)
-nrow(validation_common)
+nrow(test_common)
 table(training_common$class)
-table(validation_common$class)
+table(test_common$class)
 
-# Model
+#################################
+#              Model            #
+#################################
 
-# Find best mtry for each signature
-
-# Treatment vs outcome
-mtry_treatment <- tuneRF(my_data_treatment_vs_outcome[,1:ncol(my_data_treatment_vs_outcome)-1], 
-               my_data_treatment_vs_outcome$class, 
-               ntreeTry=500,
-               stepFactor=1.5, 
-               improve=0.001, 
-               trace=TRUE, 
-               plot=TRUE)
-best_mtry_treatment <- mtry_treatment[mtry_treatment[, 2] == min(mtry_treatment[, 2]), 1]
-mtry_treatment
-best_mtry_treatment
-
-# Gene expression vs outcome
-mtry_gene_exp <- tuneRF(my_data_gene_exp_vs_outcome[,1:ncol(my_data_gene_exp_vs_outcome)-1], 
-                        my_data_gene_exp_vs_outcome$class, 
-                         ntreeTry=500,
-                         stepFactor=1.5, 
-                         improve=0.001, 
-                         trace=TRUE, 
-                         plot=TRUE)
-best_mtry_gene_exp <- mtry_gene_exp[mtry_gene_exp[, 2] == min(mtry_gene_exp[, 2]), 1]
-mtry_gene_exp
-best_mtry_gene_exp
-
-# Common signature
-mtry_common <- tuneRF(my_data_signature_final[,1:ncol(my_data_signature_final)-1], 
-                        my_data_signature_final$class, 
-                        ntreeTry=1500,
-                        stepFactor=1.5, 
-                        improve=0.001, 
-                        trace=TRUE, 
-                        plot=TRUE)
-best_mtry_common <- mtry_common[mtry_common[, 2] == min(mtry_common[, 2]), 1]
-mtry_common
-best_mtry_common # 4, 6
-
-# Build model using this mtry
-
-# Treatment vs outcome
-rf_common <- randomForest(class ~ ., data=my_data_signature_final, ntree=1500, mtry=6, importance=TRUE)
-rf_common
-# varImpPlot(rf_classifier)
-
-#predicting the class for the test data set
-pred_common <- predict(rf_common,validation_common,type="class")
-
-#creating confusion matrix
-table(pred_common,validation_common$class) 
-rf_common$importance
-varImpPlot(rf_common)
-
-
-# Performance
-pred1 <- predict(rf_common, type = "prob")
-
-library(ROCR)
-
-perf = prediction(pred1[,2], training_common$class)
-# 1. Area under curve
-auc = performance(perf, "auc")
-auc
-# 2. True Positive and Negative Rate
-pred3 = performance(perf, "tpr","fpr")
-# 3. Plot the ROC curve
-plot(pred3,main="ROC Curve for Random Forest",col=2,lwd=2)
-abline(a=0,b=1,lwd=2,lty=2,col="gray")
-
+########################
+## With caret package ##
+########################
 
 library(caret)
 library(e1071)
 
 set.seed(42)
 
-# Define the control
-trControl <- trainControl(method = "cv",
+length((filtered_genes_treatment)) # 5
+# filtered_genes_gene_exp
+train <- training_treatment
+test <- test_treatment
+
+# length((filtered_genes_gene_exp)) # 13
+# # filtered_genes_gene_exp
+# train <- training_gene_exp
+# test <- test_gene_exp
+
+# length((filtered_genes_final_signature)) # 12
+# #filtered_genes_final_signature
+# train <- training_common
+# test <- test_common
+
+# 0) Define the control
+trControl <- trainControl(method = "repeatedcv",
+                          # method = "cv",
                           number = 10,
-                          search = "grid")
+                          repeats = 10,
+                          search = "grid",
+                          # summaryFunction = twoClassSummary,
+                          # classProbs = TRUE,
+                          # savePredictions = TRUE
+                          )
 
+# 1) Search best mtry
+tuneGrid <- expand.grid(.mtry = c(1,2,3,4))
+# tuneGrid <- expand.grid(.mtry = c(2,3,4,5,6,7,8,9,10,11,12))
+# tuneGrid <- expand.grid(.mtry = c(2,3,4,5,6,7,8,9,10,11))
 rf_default <- train(class~.,
-                    data = training_common,
-                    method = "rf",
-                    metric = "Accuracy",
-                    trControl = trControl,
-                    importance = TRUE)
-print(rf_default)
-
-# Search best mtry
-tuneGrid <- expand.grid(.mtry = c(2,4,6,10,11,13,17))
-rf_default <- train(class~.,
-                    data = training_common,
+                    data = train,
                     method = "rf",
                     metric = "Accuracy",
                     trControl = trControl,
@@ -370,15 +320,17 @@ rf_default <- train(class~.,
                     importance = TRUE)
 print(rf_default)
 best_mtry <- rf_default$bestTune$mtry 
-best_mtry # 10
+best_mtry 
+# 3 (56%)
 
-
+# 2) Search best ntree
 tuneGrid <- expand.grid(.mtry = best_mtry)
 store_maxtrees <- list()
-for (ntree in c(250, 300, 350, 400, 450, 500, 550, 600, 800, 1000, 2000)) {
+for (ntree in c(250, 300, 350, 400, 450, 500, 550, 
+                600, 800, 1000, 2000, 3000)) {
   # Run the model
   rf_maxtrees <- train(class~.,
-                      data = training_common,
+                      data = train,
                       method = "rf",
                       metric = "Accuracy",
                       trControl = trControl,
@@ -389,19 +341,48 @@ for (ntree in c(250, 300, 350, 400, 450, 500, 550, 600, 800, 1000, 2000)) {
   store_maxtrees[[key]] <- rf_maxtrees
 }
 results_tree <- resamples(store_maxtrees)
-summary(results_tree) # 400 (57%)
+summary(results_tree) # 550 (54%)
 
-colnames(training_common)
-colnames(validation_common)
+# colnames(training_common)
+# colnames(test_common)
 
+# 3) Train with best settings
 fit_rf <- train(class~.,
-                training_common,
+                train,
                 method = "rf",
                 metric = "Accuracy",
+                # metric = "ROC",
                 tuneGrid = tuneGrid,
                 trControl = trControl,
                 importance = TRUE,
-                ntree = 400)
-prediction <- predict(fit_rf, validation_common)
-confusionMatrix(prediction, validation_common$class)
+                ntree = 250)
+# fit_rf <- train(class~.,
+#                 training_common,
+#                 method = "rf",
+#                 # metric = "Accuracy",
+#                 metric = "ROC",
+#                 tuneGrid = tuneGrid,
+#                 trControl = trControl,
+#                 importance = TRUE,
+#                 ntree = 400)
 
+# 4) Evaluate
+prediction <- predict(fit_rf, test)
+confusion_matrix <- confusionMatrix(prediction, test$class)
+# prediction <- predict(fit_rf, my_data_gene_exp_vs_outcome)
+# confusion_matrix <- confusionMatrix(prediction, my_data_gene_exp_vs_outcome$class)
+confusion_matrix$overall
+confusion_matrix$byClass
+confusion_matrix$table
+
+# Plot variable importance
+varImp(fit_rf)
+plot(varImp(fit_rf))
+
+# rf_model_info <- getModelInfo(model = "rf")
+# rf_model_info$rfRules
+
+
+# library(pROC)
+# 
+# plot(roc(predictor = fit_rf$pred$X1, response = fit_rf$pred$obs))
